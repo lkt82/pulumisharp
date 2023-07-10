@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+      <AssemblyName>Inpay.DevOps.Pulumi.Pipelines</AssemblyName>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Automatron.AzureDevOps" Version="0.0.0-alpha-11" />
+        <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
+        <PackageReference Include="MinVer" Version="4.3.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="SimpleExec" Version="11.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\PulumiSharp.AzureDevOps.Automatron\PulumiSharp.AzureDevOps.Automatron.csproj" />
+    </ItemGroup>
+
+</Project>

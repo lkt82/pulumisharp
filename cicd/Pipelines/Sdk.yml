@@ -1,0 +1,61 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - src
+variables:
+- group: nuget
+pool:
+  vmImage: ubuntu-latest
+stages:
+- stage: Sdk
+  pool:
+    vmImage: ubuntu-latest
+  variables:
+  - group: nuget
+  jobs:
+  - job: Sdk
+    displayName: Ci
+    pool:
+      vmImage: ubuntu-latest
+    variables:
+    - group: nuget
+    steps:
+    - checkout: self
+      fetchDepth: 0
+    - task: NuGetAuthenticate@1
+      inputs:
+        nuGetServiceConnections: myget
+    - script: dotnet run -- run --stage "Sdk" --job "Sdk" --step "Version" -n "Sdk"
+      workingDirectory: cicd/Pipelines
+      env:
+        NUGET_API_KEY: $(NugetApiKey)
+      name: Version
+      displayName: "\U0001F522 Version"
+    - script: dotnet run -- run --stage "Sdk" --job "Sdk" --step "Clean" -n "Sdk"
+      workingDirectory: cicd/Pipelines
+      env:
+        NUGET_API_KEY: $(NugetApiKey)
+      name: Clean
+      displayName: "\U0001F9F9 Clean"
+    - script: dotnet run -- run --stage "Sdk" --job "Sdk" --step "Build" -n "Sdk"
+      workingDirectory: cicd/Pipelines
+      env:
+        NUGET_API_KEY: $(NugetApiKey)
+      name: Build
+      displayName: "\U0001F3D7 Build"
+    - script: dotnet run -- run --stage "Sdk" --job "Sdk" --step "Pack" -n "Sdk"
+      workingDirectory: cicd/Pipelines
+      env:
+        NUGET_API_KEY: $(NugetApiKey)
+      name: Pack
+      displayName: "\U0001F4E6 Pack"
+    - script: dotnet run -- run --stage "Sdk" --job "Sdk" --step "Publish" -n "Sdk"
+      workingDirectory: cicd/Pipelines
+      env:
+        NUGET_API_KEY: $(NugetApiKey)
+      name: Publish
+      displayName: "\U0001F680 Publish"

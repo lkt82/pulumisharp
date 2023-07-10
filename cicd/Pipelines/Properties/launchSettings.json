@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Pipelines": {
+      "commandName": "Project",
+      "commandLineArgs": "run native -t Download -d",
+      "workingDirectory": "."
+    }
+  }
+}

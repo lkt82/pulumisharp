@@ -1,0 +1,5 @@
+config:
+  azuredevopspipeline:organization: lkt82
+  azuredevopspipeline:project: Public
+  azuredevopspipeline:repository: pulumisharp
+  azuredevopspipeline:stacksuffix: false

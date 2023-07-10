@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+	<PropertyGroup>
+		<MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
+		<Copyright>© 2022 Lars Kjær Thomsen</Copyright>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<ContinuousIntegrationBuild Condition="'$(Configuration)' == 'Release'">true</ContinuousIntegrationBuild>
+		<Authors>Lars Kjær Thomsen</Authors>
+        <MinClientVersion>5.9</MinClientVersion>
+		<GenerateNuspecDependsOn>$(GenerateNuspecDependsOn);BranchName</GenerateNuspecDependsOn>
+	</PropertyGroup>
+
+	<Target Name="BranchName">
+		<Exec Command="git symbolic-ref HEAD" ConsoleToMSBuild="true" StandardOutputImportance="Low" Condition="$(TF_BUILD) == ''" >
+			<Output TaskParameter="ConsoleOutput" PropertyName="GitRef" />
+		</Exec>
+		<PropertyGroup>
+			<GitRef Condition="$(TF_BUILD) == 'True'">$(BUILD_SOURCEBRANCH)</GitRef>
+			<RepositoryBranch Condition="$(GitRef.StartsWith('refs/heads/'))">$(GitRef.Replace('refs/heads/',''))</RepositoryBranch>
+		</PropertyGroup>
+	</Target>
+
+</Project>
