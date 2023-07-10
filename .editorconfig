@@ -1,0 +1,13 @@
+root = true
+
+[*]
+end_of_line = crlf
+indent_style = space
+
+[*.sh]
+end_of_line = lf
+insert_final_newline = true
+
+[*.cmd]
+end_of_line = lf
+insert_final_newline = true
