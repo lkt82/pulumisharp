@@ -15,21 +15,17 @@
   version: 1.12.2
   url: "https://github.com/cert-manager/cert-manager/releases/download/v1.12.2/cert-manager.crds.yaml"
 - name: GatewayApi 
-  projectName: PulumiSharp.Kubernetes.Crd.Gateway
+  projectName: PulumiSharp.Kubernetes.Crd.GatewayApi
   version: 2.10.1
   url: "https://github.com/kubernetes-sigs/gateway-api/releases/download/v0.7.1/standard-install.yaml"
   filters:
-  - regex: \s+status.*\s+default:\s+conditions:.*(\s+-? lastTransitionTime:.*\s+ message:.*\s+ reason:.*\s+ status:.*\s+ type:.*)*
+  - regex:  \s+default:.*(\s+(conditions:)?)(\s+-? lastTransitionTime:.*\s+ message:.*\s+ reason:.*\s+ status:.*\s+ type:.*)+
     replacement: ""
-  - regex: \s+default:.*(\s+-? lastTransitionTime:.*\s+ message:.*\s+ reason:.*\s+ status:.*\s+ (type|):.*)+
+  - regex:  \s+default:.*(\s+(namespaces:)?)(\s+-? .*\s+ from:.*)
     replacement: ""
   - regex: \s+default:.*(\s+-? matches:.*\s+-? path:.*\s+?type:.*\s+?value:.*)+
     replacement: ""
   - regex: \s+default:.*(\s+-? path:.*\s+?type:.*\s+?value:.*)+
     replacement: ""
   - regex: \s+default:.*(\s+-? type:.*\s+-?value:.*)+
-    replacement: ""
-  - regex: \s+- gatewayClassName
-    replacement: ""
-  - regex: \s+- controllerName
     replacement: ""
