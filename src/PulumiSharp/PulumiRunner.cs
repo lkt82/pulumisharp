@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using CommandDotNet;
 using CommandDotNet.Spectre;
-using Pulumi;
 using Pulumi.Automation;
 
 namespace PulumiSharp;

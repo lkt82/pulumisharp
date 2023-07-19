@@ -18,6 +18,8 @@ public static class AzureRbacRoleIds
 
     public const string NetworkContributor = "4d97b98b-1d4f-4787-a291-c67834d212e7";
 
+    public const string DnsZoneContributor = "befefa01-2a29-4197-83a8-272ff33ce314";
+
     #endregion
 
     #region Compute

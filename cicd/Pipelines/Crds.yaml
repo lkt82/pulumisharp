@@ -8,7 +8,7 @@
   version: 1.25.0
   url: "https://raw.githubusercontent.com/projectcontour/contour/release-1.25/examples/contour/01-crds.yaml"
   filters:
-  - regex: status.*\s+default:\s+currentStatus.*\s+description.*
+  - regex: \s+default:.*\s+currentStatus.*\s+description.*
     replacement: ""
 - name: Certmanager
   projectName: PulumiSharp.Kubernetes.Crd.Certmanager
