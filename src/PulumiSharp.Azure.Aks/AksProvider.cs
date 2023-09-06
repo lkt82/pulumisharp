@@ -44,7 +44,8 @@ public class AksProvider : KubernetesProvider
         KubeConfig = GetKubeConfig(args.ResourceGroupName, args.ClusterName),
         SuppressDeprecationWarnings = false,
         SuppressHelmHookWarnings = true,
-        EnableServerSideApply = false
+        EnableServerSideApply = false,
+        DeleteUnreachable = true
     }, options)
     {
     }
