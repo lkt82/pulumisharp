@@ -3,6 +3,7 @@ using Pulumi.AzureNative.KeyVault;
 using Pulumi.AzureNative.KeyVault.Inputs;
 using Pulumi.Random;
 using PulumiAzureNativeStorage = Pulumi.AzureNative.Storage.V20220901;
+using AzureNativeConfig = Pulumi.AzureNative.Config;
 
 namespace PulumiSharp.Azure.Backend;
 
@@ -28,7 +29,7 @@ public class AzurePulumiBackend : ComponentResource
         }
     })
     {
-        var id = new RandomId("storageaccount", new RandomIdArgs
+        var id = new RandomId($"{name}-storageaccount", new RandomIdArgs
         {
             ByteLength = 4,
             Prefix = "pulumi"
@@ -38,7 +39,7 @@ public class AzurePulumiBackend : ComponentResource
             Aliases = { new Alias { NoParent = true } }
         });
 
-        var storageAccount = new PulumiAzureNativeStorage.StorageAccount("storageaccount", new PulumiAzureNativeStorage.StorageAccountArgs
+        var storageAccount = new PulumiAzureNativeStorage.StorageAccount($"{name}-storageaccount", new PulumiAzureNativeStorage.StorageAccountArgs
         {
             AccountName = id.Hex.Apply(c => c.ToLower()),
             ResourceGroupName = args.ResourceGroupName,
@@ -64,14 +65,25 @@ public class AzurePulumiBackend : ComponentResource
             Aliases = { new Alias { NoParent = true } }
         });
 
-        var keyVault = new AzureKeyVault("pulumi", new AzureKeyVaultArgs
-        (
-            ResourceGroupName: args.ResourceGroupName,
-            Tags: args.Tags
-        ),new()
+        var vault = new Vault($"{name}-pulumi", new VaultArgs
         {
-            Parent = this,
-            Aliases = { new Alias { NoParent = true} }
+            ResourceGroupName = args.ResourceGroupName,
+            Properties = new VaultPropertiesArgs
+            {
+                Sku = new SkuArgs
+                {
+                    Name = SkuName.Standard,
+                    Family = SkuFamily.A
+                },
+                EnableSoftDelete = true,
+                SoftDeleteRetentionInDays = 7,
+                TenantId = AzureNativeConfig.TenantId!,
+                EnableRbacAuthorization = true
+            },
+            Tags = args.Tags
+        }, new()
+        {
+            Parent = this
         });
 
         foreach (var organization in Organizations)
@@ -102,7 +114,7 @@ public class AzurePulumiBackend : ComponentResource
             {
                 KeyName = organization,
                 ResourceGroupName = args.ResourceGroupName,
-                VaultName = keyVault.Name,
+                VaultName = vault.Name,
                 Tags = args.Tags,
                 Properties = new KeyPropertiesArgs
                 {
@@ -111,7 +123,7 @@ public class AzurePulumiBackend : ComponentResource
                 }
             }, new CustomResourceOptions
             {
-                Parent = keyVault,
+                Parent = vault,
                 Aliases = { new Alias
                 {
                     Parent = this
@@ -120,7 +132,7 @@ public class AzurePulumiBackend : ComponentResource
         }
 
         StorageAccountName = storageAccount.Name;
-        KeyVaultName = keyVault.Name;
+        KeyVaultName = vault.Name;
 
         RegisterOutputs();
     }

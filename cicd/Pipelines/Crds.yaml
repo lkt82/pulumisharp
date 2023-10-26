@@ -29,3 +29,10 @@
     replacement: ""
   - regex: \s+default:.*(\s+-? type:.*\s+-?value:.*)+
     replacement: ""
+# - name: ClusterApi
+#   projectName: PulumiSharp.Kubernetes.Crd.ClusterApi
+#   version: 1.5.2
+#   url: "https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.5.2/control-plane-components.yaml"
+#   filters:
+#   - regex: \s+default:.*\s+currentStatus.*\s+description.*
+#     replacement: ""

@@ -6,7 +6,7 @@ using KubernetesProvider = Pulumi.Kubernetes.Provider;
 
 namespace PulumiSharp.Azure.Aks;
 
-public record AzureKubernetesProviderArgs(
+public record AksProviderArgs(
     Output<string> ResourceGroupName,
     Output<string> ClusterName
 );
@@ -39,7 +39,7 @@ public class AksProvider : KubernetesProvider
         }));
     }
 
-    public AksProvider(string name, AzureKubernetesProviderArgs args,CustomResourceOptions? options = null) : base(name, new ProviderArgs
+    public AksProvider(string name, AksProviderArgs args,CustomResourceOptions? options = null) : base(name, new ProviderArgs
     {
         KubeConfig = GetKubeConfig(args.ResourceGroupName, args.ClusterName),
         SuppressDeprecationWarnings = false,

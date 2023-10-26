@@ -15,8 +15,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Pulumi" Version="3.56.2" />
-    <PackageReference Include="Pulumi.Automation" Version="3.56.2" />
+    <PackageReference Include="Pulumi" Version="3.57.0" />
+    <PackageReference Include="Pulumi.Automation" Version="3.57.0" />
     <PackageReference Include="SimpleExec" Version="11.0.0" />
     <PackageReference Include="MinVer" Version="4.3.0">
         <PrivateAssets>all</PrivateAssets>
