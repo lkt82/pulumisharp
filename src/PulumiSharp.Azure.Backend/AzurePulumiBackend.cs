@@ -32,7 +32,7 @@ public class AzurePulumiBackend : ComponentResource
         var id = new RandomId($"{name}-storageaccount", new RandomIdArgs
         {
             ByteLength = 4,
-            Prefix = "pulumi"
+            Prefix = name
         }, new()
         {
             Parent = this,
@@ -47,12 +47,13 @@ public class AzurePulumiBackend : ComponentResource
             Kind = PulumiAzureNativeStorage.Kind.StorageV2,
             AllowSharedKeyAccess = false,
             AllowBlobPublicAccess = false,
+            IsHnsEnabled = true,
             MinimumTlsVersion = PulumiAzureNativeStorage.MinimumTlsVersion.TLS1_2,
-            ImmutableStorageWithVersioning = new PulumiAzureNativeStorage.Inputs.ImmutableStorageAccountArgs
-            {
-                Enabled = false
-            },
-
+            //ImmutableStorageWithVersioning = new PulumiAzureNativeStorage.Inputs.ImmutableStorageAccountArgs
+            //{
+            //    Enabled = false
+            //},
+            DefaultToOAuthAuthentication = true,
             Sku = new PulumiAzureNativeStorage.Inputs.SkuArgs
             {
                 Name = PulumiAzureNativeStorage.SkuName.Standard_ZRS
@@ -65,7 +66,7 @@ public class AzurePulumiBackend : ComponentResource
             Aliases = { new Alias { NoParent = true } }
         });
 
-        var vault = new Vault($"{name}-pulumi", new VaultArgs
+        var vault = new Vault($"{name}", new VaultArgs
         {
             ResourceGroupName = args.ResourceGroupName,
             Properties = new VaultPropertiesArgs
@@ -94,10 +95,10 @@ public class AzurePulumiBackend : ComponentResource
                 ResourceGroupName = args.ResourceGroupName,
                 PublicAccess = PulumiAzureNativeStorage.PublicAccess.None,
                 ContainerName = organization,
-                ImmutableStorageWithVersioning = new PulumiAzureNativeStorage.Inputs.ImmutableStorageWithVersioningArgs
-                {
-                    Enabled = false
-                }
+                //ImmutableStorageWithVersioning = new PulumiAzureNativeStorage.Inputs.ImmutableStorageWithVersioningArgs
+                //{
+                //    Enabled = false
+                //}
 
             }, new CustomResourceOptions
             {
