@@ -2,7 +2,7 @@
   "profiles": {
     "Pipelines": {
       "commandName": "Project",
-      "commandLineArgs": "run native -t Download -d",
+      "commandLineArgs": "run Kubernetes -t Generate -d",
       "workingDirectory": "."
     }
   }

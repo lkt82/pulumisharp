@@ -7,7 +7,7 @@ using static SimpleExec.Command;
 
 namespace Pipelines;
 
-[Pipeline(DisplayName = "Pulumi Sdk")]
+[Pipeline(DisplayName = "PulumiSharp Sdk")]
 [CiTrigger(Batch = true, IncludeBranches = new[] { "main" }, IncludePaths = new[] { "src" })]
 [Pool(VmImage = "ubuntu-latest")]
 [VariableGroup("nuget")]

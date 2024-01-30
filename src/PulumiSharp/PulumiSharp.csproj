@@ -9,14 +9,14 @@
     <Import Project="..\..\build.props" />
 
   <ItemGroup>
-    <PackageReference Include="CommandDotNet" Version="7.0.2" />
+    <PackageReference Include="CommandDotNet" Version="7.0.3" />
     <PackageReference Include="CommandDotNet.Spectre" Version="3.0.2" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Pulumi" Version="3.58.0" />
-    <PackageReference Include="Pulumi.Automation" Version="3.58.0" />
+    <PackageReference Include="Pulumi" Version="3.*" />
+    <PackageReference Include="Pulumi.Automation" Version="3.*" />
     <PackageReference Include="SimpleExec" Version="11.0.0" />
     <PackageReference Include="MinVer" Version="4.3.0">
         <PrivateAssets>all</PrivateAssets>

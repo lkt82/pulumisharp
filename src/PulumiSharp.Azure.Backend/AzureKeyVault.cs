@@ -33,7 +33,7 @@ internal class AzureKeyVault : ComponentResource
         }, new()
         {
             Parent = this,
-            Aliases = { new Alias { NoParent = true} }
+            Aliases = { new Alias { NoParent = true } }
         });
 
         Name = vault.Name;

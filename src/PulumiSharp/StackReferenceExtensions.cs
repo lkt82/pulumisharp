@@ -14,7 +14,7 @@ public static class StackReferenceExtensions
 
     private static readonly MethodInfo CastMethodInfo = typeof(StackReferenceExtensions).GetMethod(nameof(Cast), BindingFlags.Static | BindingFlags.NonPublic)!;
     private static readonly MethodInfo CastArrayInfo = typeof(StackReferenceExtensions).GetMethod(nameof(CastArray), BindingFlags.Static | BindingFlags.NonPublic)!;
-
+    private static readonly MethodInfo CastDictionaryInfo = typeof(StackReferenceExtensions).GetMethod(nameof(CastDictionary), BindingFlags.Static | BindingFlags.NonPublic)!;
 
     public static T Get<T>(this StackReference stackReference)
     {
@@ -24,20 +24,19 @@ public static class StackReferenceExtensions
         {
             var outputType = property.PropertyType.GetGenericArguments().First();
 
-            MethodInfo castMethod;
-
-            if (outputType.IsGenericType && outputType.GetGenericTypeDefinition() == typeof(ImmutableArray<>))
-            { 
-                castMethod = CastArrayInfo.MakeGenericMethod(outputType.GetGenericArguments().First());
-            }
-            else
-            { 
-                castMethod = CastMethodInfo.MakeGenericMethod(outputType);
-            }
+            var castMethod = outputType.IsGenericType switch
+            {
+                true when outputType.GetGenericTypeDefinition() == typeof(ImmutableArray<>) => CastArrayInfo
+                    .MakeGenericMethod(outputType),
+                true when outputType.GetGenericTypeDefinition() == typeof(ImmutableDictionary<,>) =>
+                    CastDictionaryInfo.MakeGenericMethod(outputType.GetGenericArguments().First(),
+                        outputType.GetGenericArguments().Last()),
+                _ => CastMethodInfo.MakeGenericMethod(outputType)
+            };
 
             var output = stackReference.GetOutput(property.Name);
 
-            var value = castMethod.Invoke(null,new object[]{output});
+            var value = castMethod.Invoke(null, new object[] { output });
 
             if (value != null)
             {
@@ -52,13 +51,9 @@ public static class StackReferenceExtensions
         return (T)constructorInfo?.Invoke(arguments.ToArray())! ?? throw new InvalidOperationException();
     }
 
-    private static Output<T> Cast<T>(Output<object?> output)
-    {
-        return output.Apply(c => (T)c!);
-    }
+    private static Output<T> Cast<T>(Output<object?> output) => output.Apply(c => (T)c!);
 
-    private static Output<ImmutableArray<T>> CastArray<T>(Output<object?> output)
-    {
-        return output.Apply(c => ((ImmutableArray<object>)c!).Cast<T>().ToImmutableArray());
-    }
+    private static Output<ImmutableArray<T>> CastArray<T>(Output<object?> output) => output.Apply(c => ((ImmutableArray<object>)c!).Cast<T>().ToImmutableArray());
+
+    private static Output<ImmutableDictionary<TKey, TValue>> CastDictionary<TKey, TValue>(Output<object?> output) where TKey : notnull => output.Apply(c => ((IEnumerable<KeyValuePair<TKey, object>>)c!).ToImmutableDictionary(keyValuePair => keyValuePair.Key, keyValuePair => (TValue)keyValuePair.Value));
 }

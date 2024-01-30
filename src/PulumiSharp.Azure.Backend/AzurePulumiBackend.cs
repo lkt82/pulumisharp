@@ -21,7 +21,7 @@ public class AzurePulumiBackend : ComponentResource
 
     public AzurePulumiBackend(string name, AzurePulumiBackendArgs args) : base(nameof(AzurePulumiBackend), name, new ComponentResourceOptions
     {
-        Aliases = { 
+        Aliases = {
             new Alias
             {
                Name = "PulumiService"
@@ -49,10 +49,6 @@ public class AzurePulumiBackend : ComponentResource
             AllowBlobPublicAccess = false,
             IsHnsEnabled = true,
             MinimumTlsVersion = PulumiAzureNativeStorage.MinimumTlsVersion.TLS1_2,
-            //ImmutableStorageWithVersioning = new PulumiAzureNativeStorage.Inputs.ImmutableStorageAccountArgs
-            //{
-            //    Enabled = false
-            //},
             DefaultToOAuthAuthentication = true,
             Sku = new PulumiAzureNativeStorage.Inputs.SkuArgs
             {
@@ -94,12 +90,7 @@ public class AzurePulumiBackend : ComponentResource
                 AccountName = storageAccount.Name,
                 ResourceGroupName = args.ResourceGroupName,
                 PublicAccess = PulumiAzureNativeStorage.PublicAccess.None,
-                ContainerName = organization,
-                //ImmutableStorageWithVersioning = new PulumiAzureNativeStorage.Inputs.ImmutableStorageWithVersioningArgs
-                //{
-                //    Enabled = false
-                //}
-
+                ContainerName = organization
             }, new CustomResourceOptions
             {
                 ReplaceOnChanges = { "immutableStorageWithVersioning" },

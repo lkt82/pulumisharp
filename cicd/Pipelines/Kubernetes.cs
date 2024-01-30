@@ -1,50 +1,53 @@
-﻿using System.Reflection;
+﻿using System.Globalization;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml;
 using Automatron.AzureDevOps.Annotations;
 using Automatron.AzureDevOps.Tasks;
 using Automatron.Models;
 using JetBrains.Annotations;
+using Semver;
+using YamlDotNet.RepresentationModel;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using static SimpleExec.Command;
 
 namespace Pipelines;
 
-[Pipeline(DisplayName = "Pulumi Native")]
+public class KubernetesProjectDocument
+{
+    public List<KubernetesProject> Projects = new();
+}
+
+public class KubernetesProject
+{
+    public string Name { get; set; } = null!;
+
+    public string ProjectName { get; set; } = null!;
+
+    public List<string> Url { get; set; } = new();
+
+    public IEnumerable<string> GetVersionedUrl()
+    {
+        var semVersion = SemVersion.Parse(Version, SemVersionStyles.Strict);
+
+        return Url.Select(c => c.Replace("${VERSION}", semVersion.ToString())
+            .Replace("${MAJOR}", semVersion.Major.ToString())
+            .Replace("${MINOR}", semVersion.Minor.ToString()));
+    }
+
+    public string Version { get; set; } = null!;
+}
+
+[Pipeline(DisplayName = "PulumiSharp Kubernetes Sdk")]
 [CiTrigger(Disabled = true)]
 [Pool(VmImage = "ubuntu-latest")]
 [VariableGroup("nuget")]
 [Stage]
 [Job(DisplayName = "Ci")]
 [UsedImplicitly]
-public class Native
+public class Kubernetes
 {
-    public class CrdProjectRoot
-    {
-        public List<CrdProject> Projects = new();
-    }
-
-    public class CrdFilter
-    {
-        public string Regex { get; set; } = null!;
-
-        public string Replacement { get; set; } = null!;
-    }
-
-    public class CrdProject
-    {
-        public string Name { get; set; } = null!;
-
-        public string ProjectName { get; set; } = null!;
-
-        public string Url { get; set; } = null!;
-
-        public string Version { get; set; } = null!;
-
-        public List<CrdFilter> Filters { get; set; } = new();
-    }
-
     private readonly LoggingCommands _loggingCommands;
 
     private const string RootPath = "../../";
@@ -59,15 +62,59 @@ public class Native
     private static string? AssemblyFileVersion => Assembly.GetEntryAssembly()!.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version;
     private static string? AssemblyVersion => Assembly.GetEntryAssembly()!.GetCustomAttribute<AssemblyVersionAttribute>()?.Version;
 
-    private static CrdProjectRoot CrdConfig => new DeserializerBuilder()
+    private static KubernetesProjectDocument CrdConfig => new DeserializerBuilder()
         .WithNamingConvention(CamelCaseNamingConvention.Instance).Build()
-        .Deserialize<CrdProjectRoot>(File.ReadAllText("Crds.yaml"));
+        .Deserialize<KubernetesProjectDocument>(File.ReadAllText("Projects.yaml"));
+
+    internal class DefaultRemover : IYamlVisitor
+    {
+        public void Visit(YamlStream stream)
+        {
+            foreach (var doc in stream)
+            {
+                doc.Accept(this);
+            }
+        }
+
+        public void Visit(YamlDocument document)
+        {
+            document.RootNode.Accept(this);
+        }
+
+        public void Visit(YamlScalarNode scalar)
+        {
+        }
+
+        public void Visit(YamlSequenceNode sequence)
+        {
+            foreach (var child in sequence.Children)
+            {
+                child.Accept(this);
+            }
+        }
+
+        public void Visit(YamlMappingNode mapping)
+        {
+            foreach (var child in mapping.Children.ToList())
+            {
+                if (child.Key.ToString() == "default" && (child.Value.NodeType == YamlNodeType.Mapping || child.Value.NodeType == YamlNodeType.Sequence))
+                {
+                    mapping.Children.Remove(child);
+                }
+                else
+                {
+                    child.Key.Accept(this);
+                    child.Value.Accept(this);
+                }
+            }
+        }
+    }
 
 
     [Variable(Description = "The nuget api key")]
     public Secret? NugetApiKey { get; set; }
 
-    public Native(LoggingCommands loggingCommands)
+    public Kubernetes(LoggingCommands loggingCommands)
     {
         _loggingCommands = loggingCommands;
     }
@@ -92,25 +139,34 @@ public class Native
         }
     }
 
-    private static async Task ParseSourceCode(string projectDir, CrdProject crd)
+    private static async Task ParseSourceCode(string projectDir, KubernetesProject crd)
     {
         foreach (var csFile in Directory.EnumerateFiles(projectDir, "*.cs", SearchOption.AllDirectories))
         {
             var content = "using Pulumi;\n";
 
             content += (await File.ReadAllTextAsync(csFile))
+                .Replace("Pulumi.Kubernetes.Types.Outputs.Meta", "#OutputsMETA")
+                .Replace("Pulumi.Kubernetes.Types.Inputs.Meta", "#InputsMETA")
                 .Replace($"Pulumi.{crd.Name}", crd.ProjectName)
-                .Replace($"Pulumi.Kubernetes.Types.Inputs.{crd.Name}", $"{crd.ProjectName}.Types.Inputs.{crd.Name}")
-                .Replace($"Pulumi.Kubernetes.Types.Outputs.{crd.Name}", $"{crd.ProjectName}.Types.Inputs.{crd.Name}")
-                .Replace("Output<Pulumi", "Output<global::Pulumi")
-                .Replace("Input<Pulumi", "Input<global::Pulumi")
-                .Replace(": Pulumi", ": global::Pulumi");
+                .Replace($"Pulumi.Kubernetes.Types", $"{crd.ProjectName}")
+                .Replace("#OutputsMETA", "Pulumi.Kubernetes.Types.Outputs.Meta")
+                .Replace("#InputsMETA", "Pulumi.Kubernetes.Types.Inputs.Meta");
+
+            var regex = new Regex(@"(?<!""\w[^""]*)-(\w)");
+
+            content = regex.Replace(content, (Match match) =>
+            {
+                var letter = match.Groups[1].Value;
+                var upper = CultureInfo.InvariantCulture.TextInfo.ToUpper(letter);
+                return upper;
+            });
 
             await File.WriteAllTextAsync(csFile, content);
         }
     }
 
-    private static void ParseProject(string projectDir, CrdProject crd, string projectFilePath)
+    private static void ParseProject(string projectDir, KubernetesProject crd, string projectFilePath)
     {
         File.Move(Path.Combine(projectDir, $"Pulumi.{crd.Name}.csproj"), projectFilePath);
 
@@ -125,19 +181,19 @@ public class Native
 
         propertyGroup.SelectSingleNode("GeneratePackageOnBuild")!.InnerText = "false";
         propertyGroup.SelectSingleNode("TargetFramework")!.InnerText = "net6.0";
-        propertyGroup.RemoveChild(propertyGroup.SelectSingleNode("Company"));
+        propertyGroup.RemoveChild(propertyGroup.SelectSingleNode("Company")!);
         propertyGroup.SelectSingleNode("Authors")!.InnerText = "lkt82";
 
         var version = doc.CreateElement("Version");
-        version.InnerText = AssemblyInformationalVersion;
+        version.InnerText = AssemblyInformationalVersion!;
         propertyGroup.AppendChild(version);
 
         var assemblyVersion = doc.CreateElement("AssemblyVersion");
-        assemblyVersion.InnerText = AssemblyVersion;
+        assemblyVersion.InnerText = AssemblyVersion!;
         propertyGroup.AppendChild(assemblyVersion);
 
         var fileVersion = doc.CreateElement("FileVersion");
-        fileVersion.InnerText = AssemblyFileVersion;
+        fileVersion.InnerText = AssemblyFileVersion!;
         propertyGroup.AppendChild(fileVersion);
 
         var nodesToRemove = new[]
@@ -172,7 +228,7 @@ public class Native
 
         var import = doc.CreateElement("Import");
         var importProject = doc.CreateAttribute("Project");
-        importProject.Value = "..\\..\\build.props";
+        importProject.Value = @"..\..\build.props";
         import.Attributes.Append(importProject);
 
         doc.DocumentElement.AppendChild(import);
@@ -199,27 +255,42 @@ public class Native
         EnsureDirectory(ArtifactsDir);
     }
 
+
     [Step(Emoji = "📥", DependsOn = new[] { nameof(Clean) })]
     public async Task Download()
     {
         using var httpClient = new HttpClient();
 
-        foreach (var crd in CrdConfig.Projects)
+        foreach (var project in CrdConfig.Projects)
         {
-            await using var stream = await httpClient.GetStreamAsync(crd.Url);
+            var yaml = new YamlStream();
 
-            var path = Path.Combine(ArtifactsDir, crd.Name + ".yaml");
+            var path = Path.Combine(ArtifactsDir, project.Name + ".yaml");
 
-            var streamReader = new StreamReader(stream);
+            var memoryStream = new MemoryStream();
 
-            var content = await streamReader.ReadToEndAsync();
+            foreach (var file in project.GetVersionedUrl())
+            {
+                await using var stream = await httpClient.GetStreamAsync(file);
+
+                await stream.CopyToAsync(memoryStream);
+            }
+
+            memoryStream.Seek(0, SeekOrigin.Begin);
+
+            var streamReader = new StreamReader(memoryStream);
+
+            yaml.Load(streamReader);
 
             streamReader.Close();
 
-            content = crd.Filters.Aggregate(content, (current, filter) => Regex.Replace(current, filter.Regex, filter.Replacement));
+            var visitor = new DefaultRemover();
+
+            yaml.Accept(visitor);
 
             await using var streamWriter = File.CreateText(path);
-            await streamWriter.WriteAsync(content);
+            yaml.Save(streamWriter,false);
+
             streamWriter.Close();
         }
     }
@@ -235,7 +306,7 @@ public class Native
 
             var projectFilePath = Path.Combine(projectDir, $"{crd.ProjectName}.csproj");
 
-            await RunAsync("crd2pulumi", $"--dotnetName {crd.Name} --dotnetPath {crd.Name} {yamlPath} --force", workingDirectory: ArtifactsDir, noEcho: true);
+            await RunAsync($"{RootPath}/.tools/crd2pulumi", $"--dotnetName {crd.Name} --dotnetPath {crd.Name} {yamlPath} --force", workingDirectory: ArtifactsDir, noEcho: true);
 
             await File.WriteAllTextAsync(Path.Combine(projectDir, "version.txt"), crd.Version);
 
@@ -245,14 +316,11 @@ public class Native
         }
     }
 
-
     [Step(Emoji = "🏗", DependsOn = new[] { nameof(Generate) })]
     public async Task Build()
     {
-        foreach (var crd in CrdConfig.Projects)
+        foreach (var projectDir in CrdConfig.Projects.Select(crd => Path.Combine(ArtifactsDir, crd.Name)))
         {
-            var projectDir = Path.Combine(ArtifactsDir, crd.Name);
-
             await RunAsync("dotnet", $"dotnet build -c {Configuration}", workingDirectory: projectDir, noEcho: true);
         }
     }
@@ -260,10 +328,8 @@ public class Native
     [Step(Emoji = "📦", DependsOn = new[] { nameof(Build), nameof(Clean) })]
     public async Task Pack()
     {
-        foreach (var crd in CrdConfig.Projects)
+        foreach (var projectDir in CrdConfig.Projects.Select(crd => Path.Combine(ArtifactsDir, crd.Name)))
         {
-            var projectDir = Path.Combine(ArtifactsDir, crd.Name);
-
             await RunAsync("dotnet", $"dotnet pack --no-build -c {Configuration} -o {ArtifactsDir}", workingDirectory: projectDir, noEcho: true);
         }
     }

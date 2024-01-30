@@ -7,13 +7,20 @@ using KubernetesProvider = Pulumi.Kubernetes.Provider;
 namespace PulumiSharp.Azure.Aks;
 
 public record AksProviderArgs(
-    Output<string> ResourceGroupName,
-    Output<string> ClusterName
-);
+    Output<string>? ResourceGroupName = null,
+    Output<string>? ClusterName = null,
+    Output<string>? KubeConfig = null
+)
+{
+    public Output<string>? KubeConfig { get; set; } = KubeConfig ?? AksProvider.GetKubeConfig(
+        ResourceGroupName ?? throw new InvalidOperationException(),
+        ClusterName ?? throw new InvalidOperationException());
+}
+
 
 public class AksProvider : KubernetesProvider
 {
-    private static Output<string> GetKubeConfig(Input<string> resourceGroupName, Input<string> clusterName)
+    public static Output<string> GetKubeConfig(Input<string> resourceGroupName, Input<string> clusterName)
     {
         return Output.CreateSecret(ListManagedClusterUserCredentials.Invoke(new()
         {
@@ -39,14 +46,17 @@ public class AksProvider : KubernetesProvider
         }));
     }
 
-    public AksProvider(string name, AksProviderArgs args,CustomResourceOptions? options = null) : base(name, new ProviderArgs
+    public AksProvider(string name, AksProviderArgs args, CustomResourceOptions? options = null) : base(name, new ProviderArgs
     {
-        KubeConfig = GetKubeConfig(args.ResourceGroupName, args.ClusterName),
+        KubeConfig = args.KubeConfig ?? throw new InvalidOperationException(),
         SuppressDeprecationWarnings = false,
         SuppressHelmHookWarnings = true,
         EnableServerSideApply = false,
         DeleteUnreachable = true
     }, options)
     {
+        KubeConfig = args.KubeConfig;
     }
+
+    public Output<string> KubeConfig { get; set; }
 }
