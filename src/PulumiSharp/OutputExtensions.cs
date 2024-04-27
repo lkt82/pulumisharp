@@ -6,7 +6,7 @@ namespace PulumiSharp;
 
 public static class OutputExtensions
 {
-    public static Output<ImmutableDictionary<T1, string>> JsonSerialize<T1,T2>(this Output<ImmutableDictionary<T1, Output<T2>>> output, JsonSerializerOptions? options = null) where T1 : notnull
+    public static Output<ImmutableDictionary<T1, string>> JsonSerialize<T1, T2>(this Output<ImmutableDictionary<T1, Output<T2>>> output, JsonSerializerOptions? options = null) where T1 : notnull
     {
         return output.Apply(outputs =>
         {
@@ -49,6 +49,21 @@ public static class OutputExtensions
 
                 return dictionary.ToImmutableDictionary();
             });
+        });
+    }
+
+    public static Output<ImmutableDictionary<T1, T2>> ToOutput<T1, T2>(this IDictionary<T1, Output<T2>> output) where T1 : notnull
+    {
+        return Output.All(output.Values).Apply(c =>
+        {
+            var dictionary = new Dictionary<T1, T2>();
+            var keys = output.Keys.ToArray();
+            for (var i = 0; i < c.Length; i++)
+            {
+                dictionary.Add(keys[i], c[i]);
+            }
+
+            return dictionary.ToImmutableDictionary();
         });
     }
 }

@@ -51,7 +51,7 @@ public static class StackReferenceExtensions
         return (T)constructorInfo?.Invoke(arguments.ToArray())! ?? throw new InvalidOperationException();
     }
 
-    private static Output<T> Cast<T>(Output<object?> output) => output.Apply(c => (T)c!);
+    private static Output<T> Cast<T>(Output<object?> output) => output.Apply(c => c is T o ? o : default)!;
 
     private static Output<ImmutableArray<T>> CastArray<T>(Output<object?> output) => output.Apply(c => ((ImmutableArray<object>)c!).Cast<T>().ToImmutableArray());
 

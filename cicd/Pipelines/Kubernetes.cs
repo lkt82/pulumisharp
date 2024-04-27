@@ -110,6 +110,50 @@ public class Kubernetes
         }
     }
 
+    internal class OneOfRemover : IYamlVisitor
+    {
+        public void Visit(YamlStream stream)
+        {
+            foreach (var doc in stream)
+            {
+                doc.Accept(this);
+            }
+        }
+
+        public void Visit(YamlDocument document)
+        {
+            document.RootNode.Accept(this);
+        }
+
+        public void Visit(YamlScalarNode scalar)
+        {
+        }
+
+        public void Visit(YamlSequenceNode sequence)
+        {
+            foreach (var child in sequence.Children)
+            {
+                child.Accept(this);
+            }
+        }
+
+        public void Visit(YamlMappingNode mapping)
+        {
+            foreach (var child in mapping.Children.ToList())
+            {
+                if (child.Key.ToString() == "oneOf")
+                {
+                    mapping.Children.Remove(child);
+                }
+                else
+                {
+                    child.Key.Accept(this);
+                    child.Value.Accept(this);
+                }
+            }
+        }
+    }
+
 
     [Variable(Description = "The nuget api key")]
     public Secret? NugetApiKey { get; set; }
@@ -287,6 +331,10 @@ public class Kubernetes
             var visitor = new DefaultRemover();
 
             yaml.Accept(visitor);
+
+            var oneOfRemover = new OneOfRemover();
+
+            yaml.Accept(oneOfRemover);
 
             await using var streamWriter = File.CreateText(path);
             yaml.Save(streamWriter,false);

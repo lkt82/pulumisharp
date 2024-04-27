@@ -60,6 +60,7 @@ public static class AzureRbacRoleIds
 
     public const string KeyVaultReader = "21090545-7ca7-4776-b22c-e363652d74d2";
 
+    public const string KeyVaultCryptoUser = "12338af0-0e69-4776-bea7-57ae8d297424";
 
     #endregion
 
