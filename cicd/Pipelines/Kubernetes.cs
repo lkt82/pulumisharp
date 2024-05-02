@@ -262,7 +262,7 @@ public class Kubernetes
         var packageReferenceInclude = doc.CreateAttribute("Include");
         packageReferenceInclude.Value = "Microsoft.SourceLink.GitHub";
         var packageReferenceVersion = doc.CreateAttribute("Version");
-        packageReferenceVersion.Value = "1.1.1";
+        packageReferenceVersion.Value = "8.0.0";
 
         var packageReference = doc.CreateElement("PackageReference");
         packageReference.Attributes.Append(packageReferenceInclude);

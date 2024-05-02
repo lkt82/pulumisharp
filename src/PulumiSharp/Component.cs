@@ -34,4 +34,9 @@ public abstract class Component<TType, TArgs, TConfig> : Component<TType, TArgs>
     {
         Config = new Config(Type.ToLower().Replace(":", "-")).GetObject<TConfig>(name) ?? new TConfig();
     }
+
+    protected Component(string name, string configName, TArgs args, ComponentResourceOptions? componentOptions = null) : base(name, args, componentOptions)
+    {
+        Config = new Config(configName).GetObject<TConfig>(name) ?? new TConfig();
+    }
 }
