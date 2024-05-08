@@ -63,7 +63,7 @@
   version: 1.27.0
   url: 
   - "https://raw.githubusercontent.com/projectcontour/contour/release-1.27/examples/contour/01-crds.yaml"
-- name: MariaDB
+- name: MariaDBOperator
   projectName: PulumiSharp.Kubernetes.MariaDBOperator
   version: 0.27.0
   url: 
