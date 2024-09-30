@@ -47,11 +47,13 @@ public abstract class PulumiDeploymentJob
         }
     }
 
+    private static AzurePulumiProfile? Profile => PulumiContext.GetProfile<AzurePulumiProfile>();
+
     [Variable]
     public Secret? PulumiAccessToken { get; set; }
 
     [Variable]
-    public string? PulumiOrganization { get; set; } = PulumiContext.GetProfile()?.Organization;
+    public string? PulumiOrganization { get; set; } = Profile?.Organization;
 
     [Variable]
     public Secret? AzureClientSecret { get; set; }
@@ -63,10 +65,10 @@ public abstract class PulumiDeploymentJob
     public string? AzureTenantId { get; set; }
 
     [Variable] 
-    public string? AzureStorageAccount { get; set; } = PulumiContext.GetProfile()?.StorageAccountName;
+    public string? AzureStorageAccount { get; set; } = Profile?.StorageAccountName;
 
     [Variable]
-    public string? AzureKeyVault { get; set; } = PulumiContext.GetProfile()?.KeyVaultName;
+    public string? AzureKeyVault { get; set; } = Profile?.KeyVaultName;
 
 
     [Checkout(CheckoutSource.Self, FetchDepth = 0)]

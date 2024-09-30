@@ -10,8 +10,8 @@
 
     <ItemGroup>
         <PackageReference Include="Automatron.AzureDevOps" Version="0.0.0-alpha-11" />
-        <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
-        <PackageReference Include="MinVer" Version="5.0.0">
+        <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
+        <PackageReference Include="MinVer" Version="6.0.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

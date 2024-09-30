@@ -62,6 +62,14 @@ public static class PulumiContext
         return profiles?.Current == null ? null : profiles.Profiles[profiles.Current!];
     }
 
+    public static T? GetProfile<T>() where T : PulumiProfile
+    {
+        var profiles = GetProfiles();
+
+        return profiles?.Current == null ? null : (T)profiles.Profiles[profiles.Current!];
+    }
+
+
     public static async Task SaveProfilesAsync(PulumiProfiles profiles)
     {
         await File.WriteAllTextAsync(Path, JsonSerializer.Serialize(profiles, new JsonSerializerOptions

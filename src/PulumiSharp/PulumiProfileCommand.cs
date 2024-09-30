@@ -58,6 +58,24 @@ internal class PulumiProfileCommand : PulumiCommandBase
         return 0;
     }
 
+    [Command("unselect")]
+    public async Task<int> Unselect(string profile)
+    {
+        var profiles = await PulumiContext.GetProfilesAsync();
+
+        if (profiles == null)
+        {
+            _ansiConsole.MarkupLine($"[red]Profile {profile} is not is configured[/]");
+            return 1;
+        }
+
+        profiles.Current = null;
+
+        await PulumiContext.SaveProfilesAsync(profiles);
+
+        return 0;
+    }
+
     [Command("select")]
     public async Task<int> Select(string profile)
     {
@@ -74,31 +92,41 @@ internal class PulumiProfileCommand : PulumiCommandBase
 
         await PulumiContext.SaveProfilesAsync(profiles);
 
-        await RunAsync("az", $"account set --subscription {pulumiAccount.SubscriptionId}");
+        if (pulumiAccount is AzurePulumiProfile azurePulumiProfile)
+        {
+            await RunAsync("az", $"account set --subscription {azurePulumiProfile.SubscriptionId}");
+        }
 
         return 0;
     }
 
-    [Command("unselect")]
-    public async Task<int> Unselect(string profile)
+    [Command("login")]
+    public async Task<int> Login(string profile)
     {
         var profiles = await PulumiContext.GetProfilesAsync();
-
         if (profiles == null)
         {
             _ansiConsole.MarkupLine($"[red]Profile {profile} is not is configured[/]");
             return 1;
         }
 
-        profiles.Current = null;
+        profiles.Current = profile;
 
-        await PulumiContext.SaveProfilesAsync(profiles); ;
+        var pulumiAccount = profiles.Profiles[profile];
+
+        if (pulumiAccount is AzurePulumiProfile azurePulumiProfile)
+        { 
+            await RunAsync("az", "login");
+            await RunAsync("az", $"account set --subscription {azurePulumiProfile.SubscriptionId}");
+        }
+
+        await PulumiContext.SaveProfilesAsync(profiles);
 
         return 0;
     }
 
-    [Command("init")]
-    public async Task Init(string profile, string organization, string storageAccountName, string keyVaultName, string tenantId, string subscriptionId)
+    [Command("init-azure")]
+    public async Task AzureInit(string profile, string organization, string storageAccountName, string keyVaultName, string tenantId, string subscriptionId)
     {
         var profiles = await PulumiContext.GetProfilesAsync();
 
@@ -106,7 +134,7 @@ internal class PulumiProfileCommand : PulumiCommandBase
         {
             profiles.Current = profile;
 
-            var pulumiAccount = profiles.Profiles[profile];
+            var pulumiAccount = (AzurePulumiProfile)profiles.Profiles[profile];
 
             pulumiAccount.Organization = organization;
             pulumiAccount.StorageAccountName = storageAccountName;
@@ -121,7 +149,7 @@ internal class PulumiProfileCommand : PulumiCommandBase
                 Current = profile,
                 Profiles = new Dictionary<string, PulumiProfile>
                 {
-                    { profile,new PulumiProfile
+                    { profile,new AzurePulumiProfile
                         {
                             Organization = organization,
                             StorageAccountName = storageAccountName,
@@ -135,15 +163,5 @@ internal class PulumiProfileCommand : PulumiCommandBase
         }
 
         await PulumiContext.SaveProfilesAsync(profiles);
-    }
-
-    [Command("login")]
-    public async Task<int> Login(string profile)
-    {
-        await RunAsync("az", "login");
-
-        await Select(profile);
-
-        return 0;
     }
 }

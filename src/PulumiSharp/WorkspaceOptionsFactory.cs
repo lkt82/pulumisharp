@@ -11,7 +11,7 @@ public static class WorkspaceOptionsFactory
             StackSettings = null
         };
 
-        var profile = PulumiContext.GetProfile();
+        var profile = PulumiContext.GetProfile<AzurePulumiProfile>();
 
         if (profile != null)
         {

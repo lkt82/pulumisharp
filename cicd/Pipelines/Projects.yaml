@@ -67,4 +67,9 @@
   projectName: PulumiSharp.Kubernetes.MariaDBOperator
   version: 0.27.0
   url: 
-  - "https://github.com/mariadb-operator/mariadb-operator/releases/download/helm-chart-0.27.0/crds.yaml"
+  - "https://github.com/mariadb-operator/mariadb-operator/releases/download/helm-chart-${VERSION}/crds.yaml"
+- name: GrafanaOperator
+  projectName: PulumiSharp.Kubernetes.GrafanaOperator
+  version: 5.9.0
+  url: 
+  - "https://github.com/grafana/grafana-operator/releases/download/v${VERSION}/crds.yaml"
