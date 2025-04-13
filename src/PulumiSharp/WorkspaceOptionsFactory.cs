@@ -2,7 +2,7 @@
 
 namespace PulumiSharp;
 
-public static class WorkspaceOptionsFactory
+internal static class WorkspaceOptionsFactory
 {
     public static InlineProgramArgs CreateInline(string projectName, string? stack, PulumiFn program)
     {
