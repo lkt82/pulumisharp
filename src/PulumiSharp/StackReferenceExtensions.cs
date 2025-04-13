@@ -27,7 +27,7 @@ public static class StackReferenceExtensions
             var castMethod = outputType.IsGenericType switch
             {
                 true when outputType.GetGenericTypeDefinition() == typeof(ImmutableArray<>) => CastArrayInfo
-                    .MakeGenericMethod(outputType),
+                    .MakeGenericMethod(outputType.GenericTypeArguments.First()),
                 true when outputType.GetGenericTypeDefinition() == typeof(ImmutableDictionary<,>) =>
                     CastDictionaryInfo.MakeGenericMethod(outputType.GetGenericArguments().First(),
                         outputType.GetGenericArguments().Last()),
@@ -36,7 +36,7 @@ public static class StackReferenceExtensions
 
             var output = stackReference.GetOutput(property.Name);
 
-            var value = castMethod.Invoke(null, new object[] { output });
+            var value = castMethod.Invoke(null, [output]);
 
             if (value != null)
             {
@@ -45,7 +45,6 @@ public static class StackReferenceExtensions
         }
 
         var types = arguments.Select(c => c.GetType()).ToArray();
-
         var constructorInfo = typeof(T).GetConstructor(types);
 
         return (T)constructorInfo?.Invoke(arguments.ToArray())! ?? throw new InvalidOperationException();
@@ -53,7 +52,11 @@ public static class StackReferenceExtensions
 
     private static Output<T> Cast<T>(Output<object?> output) => output.Apply(c => c is T o ? o : default)!;
 
-    private static Output<ImmutableArray<T>> CastArray<T>(Output<object?> output) => output.Apply(c => ((ImmutableArray<object>)c!).Cast<T>().ToImmutableArray());
+    private static Output<ImmutableArray<T>> CastArray<T>(Output<object?> output) => output.Apply(c =>
+    {
+        var array = (ImmutableArray<object>)c!;
+        return array.Cast<T>().ToImmutableArray();
+    });
 
-    private static Output<ImmutableDictionary<TKey, TValue>> CastDictionary<TKey, TValue>(Output<object?> output) where TKey : notnull => output.Apply(c => ((IEnumerable<KeyValuePair<TKey, object>>)c!).ToImmutableDictionary(keyValuePair => keyValuePair.Key, keyValuePair => (TValue)keyValuePair.Value));
+    private static Output<ImmutableDictionary<TKey,TValue>> CastDictionary<TKey, TValue>(Output<object?> output) where TKey : notnull => output.Apply(c => ((IEnumerable<KeyValuePair<TKey, object>>)c!).ToImmutableDictionary(keyValuePair => keyValuePair.Key, keyValuePair => (TValue)keyValuePair.Value));
 }

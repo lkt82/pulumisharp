@@ -4,7 +4,7 @@ using static SimpleExec.Command;
 
 namespace PulumiSharp;
 
-public class PulumiCli
+internal class PulumiCli
 {
     [DebuggerStepThrough]
     public async Task RunCommand(string args, LocalWorkspaceOptions workspaceOptions)

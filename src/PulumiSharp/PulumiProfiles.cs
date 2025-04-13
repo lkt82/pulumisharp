@@ -1,6 +1,5 @@
 ﻿namespace PulumiSharp;
 
-
 public class PulumiProfiles
 {
     public string? Current { get; set; }

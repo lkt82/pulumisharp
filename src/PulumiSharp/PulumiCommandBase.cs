@@ -5,18 +5,11 @@ using Spectre.Console;
 
 namespace PulumiSharp;
 
-internal abstract class PulumiCommandBase
+internal abstract class PulumiCommandBase(IAnsiConsole ansiConsole, CommandContext commandContext)
 {
-    protected readonly IAnsiConsole AnsiConsole;
-    protected readonly CommandContext CommandContext;
-    protected readonly PulumiCli PulumiCli;
-
-    protected PulumiCommandBase(IAnsiConsole ansiConsole, CommandContext commandContext)
-    {
-        AnsiConsole = ansiConsole;
-        CommandContext = commandContext;
-        PulumiCli = commandContext.Services.GetOrCreate<PulumiCli>();
-    }
+    protected readonly IAnsiConsole AnsiConsole = ansiConsole;
+    protected readonly CommandContext CommandContext = commandContext;
+    protected readonly PulumiCli PulumiCli = commandContext.Services.GetOrCreate<PulumiCli>();
 
     protected static string ProjectName => Assembly.GetEntryAssembly()!.GetName().Name!;
 

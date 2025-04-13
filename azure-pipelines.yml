@@ -6,18 +6,19 @@ trigger:
   paths:
     include:
     - src
+pr: none
 variables:
 - group: nuget
 pool:
   vmImage: ubuntu-latest
 stages:
-- stage: Sdk
+- stage: Pipeline
   pool:
     vmImage: ubuntu-latest
   variables:
   - group: nuget
   jobs:
-  - job: Sdk
+  - job: Pipeline
     displayName: Ci
     pool:
       vmImage: ubuntu-latest
@@ -26,34 +27,31 @@ stages:
     steps:
     - checkout: self
       fetchDepth: 0
-    - task: NuGetAuthenticate@1
-      inputs:
-        nuGetServiceConnections: myget
-    - script: dotnet run -- run --stage "Sdk" --job "Sdk" --step "Version" -n "Sdk"
+    - script: dotnet run -- run --stage "Pipeline" --job "Pipeline" --step "Version" -n "Ci"
       workingDirectory: cicd/Pipelines
       env:
         NUGET_API_KEY: $(NugetApiKey)
       name: Version
       displayName: "\U0001F522 Version"
-    - script: dotnet run -- run --stage "Sdk" --job "Sdk" --step "Clean" -n "Sdk"
+    - script: dotnet run -- run --stage "Pipeline" --job "Pipeline" --step "Clean" -n "Ci"
       workingDirectory: cicd/Pipelines
       env:
         NUGET_API_KEY: $(NugetApiKey)
       name: Clean
       displayName: "\U0001F9F9 Clean"
-    - script: dotnet run -- run --stage "Sdk" --job "Sdk" --step "Build" -n "Sdk"
+    - script: dotnet run -- run --stage "Pipeline" --job "Pipeline" --step "Build" -n "Ci"
       workingDirectory: cicd/Pipelines
       env:
         NUGET_API_KEY: $(NugetApiKey)
       name: Build
       displayName: "\U0001F3D7 Build"
-    - script: dotnet run -- run --stage "Sdk" --job "Sdk" --step "Pack" -n "Sdk"
+    - script: dotnet run -- run --stage "Pipeline" --job "Pipeline" --step "Pack" -n "Ci"
       workingDirectory: cicd/Pipelines
       env:
         NUGET_API_KEY: $(NugetApiKey)
       name: Pack
       displayName: "\U0001F4E6 Pack"
-    - script: dotnet run -- run --stage "Sdk" --job "Sdk" --step "Publish" -n "Sdk"
+    - script: dotnet run -- run --stage "Pipeline" --job "Pipeline" --step "Publish" -n "Ci"
       workingDirectory: cicd/Pipelines
       env:
         NUGET_API_KEY: $(NugetApiKey)

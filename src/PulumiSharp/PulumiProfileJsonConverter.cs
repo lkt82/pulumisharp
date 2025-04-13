@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace PulumiSharp;
 
-public class PulumiProfileJsonConverter : JsonConverter<PulumiProfile>
+internal class PulumiProfileJsonConverter : JsonConverter<PulumiProfile>
 {
     public override bool CanConvert(Type type)
     {

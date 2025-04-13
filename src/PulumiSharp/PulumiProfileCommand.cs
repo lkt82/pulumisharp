@@ -7,14 +7,10 @@ namespace PulumiSharp;
 
 [Subcommand]
 [Command("profile")]
-internal class PulumiProfileCommand : PulumiCommandBase
+internal class PulumiProfileCommand(IAnsiConsole ansiConsole, CommandContext commandContext)
+    : PulumiCommandBase(ansiConsole, commandContext)
 {
-    private readonly IAnsiConsole _ansiConsole;
-
-    public PulumiProfileCommand(IAnsiConsole ansiConsole, CommandContext commandContext) : base(ansiConsole, commandContext)
-    {
-        _ansiConsole = ansiConsole;
-    }
+    private readonly IAnsiConsole _ansiConsole = ansiConsole;
 
     [Command("ls")]
     public async Task<int> List()

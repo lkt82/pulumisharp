@@ -7,17 +7,16 @@ using static SimpleExec.Command;
 
 namespace Pipelines;
 
-[Pipeline(DisplayName = "PulumiSharp Sdk")]
-[CiTrigger(Batch = true, IncludeBranches = new[] { "main" }, IncludePaths = new[] { "src" })]
+[Pipeline("Ci", YmlDir = RelativeRootDir, YmlName = "azure-pipelines")]
+[CiTrigger(Batch = true, IncludeBranches = ["main"], IncludePaths = ["src"])]
+[PrTrigger(Disabled = true)]
 [Pool(VmImage = "ubuntu-latest")]
 [VariableGroup("nuget")]
 [Stage]
 [Job(DisplayName = "Ci")]
 [UsedImplicitly]
-public class Sdk
+public class Pipeline(LoggingCommands loggingCommands)
 {
-    private readonly LoggingCommands _loggingCommands;
-
     private const string RelativeRootDir = "../../";
 
     private static string RootDir => Path.GetFullPath(RelativeRootDir, Directory.GetCurrentDirectory());
@@ -30,18 +29,11 @@ public class Sdk
         $"{RootDir}/src/PulumiSharp",
         $"{RootDir}/src/PulumiSharp.Azure",
         $"{RootDir}/src/PulumiSharp.Azure.Aks",
-        $"{RootDir}/src/PulumiSharp.Azure.Backend",
-        $"{RootDir}/src/PulumiSharp.AzureDevOps",
-        $"{RootDir}/src/PulumiSharp.AzureDevOps.Automatron"
+        $"{RootDir}/src/PulumiSharp.Azure.Backend"
     };
 
     [Variable(Description = "The nuget api key")]
     public Secret? NugetApiKey { get; set; }
-
-    public Sdk(LoggingCommands loggingCommands)
-    {
-        _loggingCommands = loggingCommands;
-    }
 
     private static void CleanDirectory(string dir)
     {
@@ -64,7 +56,6 @@ public class Sdk
     }
 
     [Checkout(CheckoutSource.Self, FetchDepth = 0)]
-    [NuGetAuthenticate(NugetServiceConnections = "myget")]
     [Step(Emoji = "🔢")]
     public async Task Version()
     {
@@ -74,7 +65,7 @@ public class Sdk
             return;
         }
 
-        await _loggingCommands.UpdateBuildNumberAsync(version);
+        await loggingCommands.UpdateBuildNumberAsync(version);
     }
 
     [Step(Emoji = "🧹")]
@@ -84,7 +75,7 @@ public class Sdk
         EnsureDirectory(ArtifactsDir);
     }
 
-    [Step(Emoji = "🏗", DependsOn = new[] { nameof(Version), nameof(Clean) })]
+    [Step(Emoji = "🏗", DependsOn = [nameof(Version), nameof(Clean)])]
     public async Task Build()
     {
         foreach (var project in _projects)
@@ -93,7 +84,7 @@ public class Sdk
         }
     }
 
-    [Step(Emoji = "📦", DependsOn = new[] { nameof(Build), nameof(Clean) })]
+    [Step(Emoji = "📦", DependsOn = [nameof(Build), nameof(Clean)])]
     public async Task Pack()
     {
         foreach (var project in _projects)
@@ -102,7 +93,7 @@ public class Sdk
         }
     }
 
-    [Step(Emoji = "🚀", DependsOn = new[] { nameof(Pack) })]
+    [Step(Emoji = "🚀", DependsOn = [nameof(Pack)])]
     public async Task Publish()
     {
         if (NugetApiKey == null)
@@ -112,13 +103,9 @@ public class Sdk
 
         foreach (var nuget in Directory.EnumerateFiles(ArtifactsDir, "*.nupkg"))
         {
-            await _loggingCommands.UploadArtifactAsync("/", "Nuget", nuget);
-            await _loggingCommands.UploadArtifactAsync("/", "Nuget", nuget.Replace("nupkg", "snupkg"));
-        }
-
-        foreach (var nuget in Directory.EnumerateFiles(ArtifactsDir, "*.nupkg"))
-        {
-            await RunAsync("dotnet", $"nuget push {nuget} -k {NugetApiKey.GetValue()} -s inpay --skip-duplicate", workingDirectory: RootDir, noEcho: true);
+            await loggingCommands.UploadArtifactAsync("/", "Nuget", nuget);
+            await loggingCommands.UploadArtifactAsync("/", "Nuget", nuget.Replace("nupkg", "snupkg"));
+            await RunAsync("dotnet", $"nuget push {nuget} -k {NugetApiKey?.GetValue()} -s https://api.nuget.org/v3/index.json --skip-duplicate", workingDirectory: RootDir, noEcho: true);
         }
     }
 }

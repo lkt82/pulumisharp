@@ -8,12 +8,9 @@ namespace PulumiSharp;
 
 [Subcommand]
 [Command("stack")]
-internal class PulumiStackCommand : PulumiCommandBase
+internal class PulumiStackCommand(IAnsiConsole ansiConsole, CommandContext commandContext)
+    : PulumiCommandBase(ansiConsole, commandContext)
 {
-    public PulumiStackCommand(IAnsiConsole ansiConsole, CommandContext commandContext) : base(ansiConsole, commandContext)
-    {
-    }
-
     [Command("init")]
     public async Task Init(string stack)
     {

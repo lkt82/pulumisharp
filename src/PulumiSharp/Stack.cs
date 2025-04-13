@@ -1,14 +1,25 @@
-﻿namespace PulumiSharp;
+﻿using Pulumi;
+
+namespace PulumiSharp;
 
 public abstract class Stack
 {
-    public Dictionary<string, object?> Outputs { get; protected set; } = new();
+    internal abstract Dictionary<string, object?> DoBuild();
 }
 
 public abstract class Stack<T> : Stack where T : class
 {
-    protected void RegisterOutputs(T output)
+    internal override Dictionary<string, object?> DoBuild()
     {
-        Outputs= output.ToDictionary();
+        return Build().ToDictionary();
     }
+
+    public abstract T Build();
+}
+
+public abstract class Stack<TOutput, TConfig>(string name) : Stack<TOutput>
+    where TOutput : class
+    where TConfig : new()
+{
+    protected TConfig Config { get; set; } = new Config(nameof(Stack).ToLower()).GetObject<TConfig>(name) ?? new TConfig();
 }

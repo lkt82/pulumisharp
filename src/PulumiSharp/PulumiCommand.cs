@@ -6,18 +6,12 @@ using CommandContext = CommandDotNet.CommandContext;
 
 namespace PulumiSharp;
 
-internal class PulumiCommand : PulumiCommandBase
+internal class PulumiCommand(IAnsiConsole ansiConsole, CommandContext commandContext)
+    : PulumiCommandBase(ansiConsole, commandContext)
 {
-    private readonly IAnsiConsole _ansiConsole;
-
-    public PulumiCommand(IAnsiConsole ansiConsole, CommandContext commandContext) : base(ansiConsole, commandContext)
-    {
-        _ansiConsole = ansiConsole;
-    }
-
     [DefaultCommand]
     [DebuggerStepThrough]
-    public virtual Task<int> RunDeployment(params string[] args)
+    public virtual Task<int> RunDeployment(params string[]? args)
     {
         var func = CommandContext.Services.GetOrThrow<Func<IDictionary<string, object?>>>();
 
@@ -119,13 +113,11 @@ internal class PulumiCommand : PulumiCommandBase
     }
 }
 
-internal class PulumiCommand<T> : PulumiCommand where T : Pulumi.Stack, new()
+internal class PulumiCommand<T>(IAnsiConsole ansiConsole, CommandContext commandContext)
+    : PulumiCommand(ansiConsole, commandContext)
+    where T : Pulumi.Stack, new()
 {
     [DefaultCommand]
     [DebuggerStepThrough]
-    public override Task<int> RunDeployment(params string[] args) => Deployment.RunAsync<T>();
-
-    public PulumiCommand(IAnsiConsole ansiConsole, CommandContext commandContext) : base(ansiConsole, commandContext)
-    {
-    }
+    public override Task<int> RunDeployment(params string[]? args) => Deployment.RunAsync<T>();
 }

@@ -1,3 +1,3 @@
-﻿using PulumiSharp.AzureDevOps.Automatron;
+﻿using Automatron.AzureDevOps;
 
-return await new PulumiAzureDevOpsRunner().RunAsync(args);
+return await new AzureDevOpsRunner().RunAsync(args);

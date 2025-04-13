@@ -13,34 +13,32 @@ public static class WorkspaceOptionsFactory
 
         var profile = PulumiContext.GetProfile<AzurePulumiProfile>();
 
-        if (profile != null)
+        var storageAccount = Environment.GetEnvironmentVariable("AZURE_STORAGE_ACCOUNT") ?? profile?.StorageAccountName ?? throw new Exception("storageAccount not found");
+        var keyVault = Environment.GetEnvironmentVariable("AZURE_KEY_VAULT") ?? profile?.KeyVaultName ?? throw new Exception("keyVault not found");
+        var organization = Environment.GetEnvironmentVariable("PULUMI_ORGANIZATION") ?? profile?.Organization ?? throw new Exception("organization not found");
+
+        var secretsProvider = $"azurekeyvault://{keyVault}.vault.azure.net/keys/{organization}";
+
+        localWorkspaceOptions.EnvironmentVariables = new Dictionary<string, string?>
         {
-            var storageAccount = Environment.GetEnvironmentVariable("AZURE_STORAGE_ACCOUNT") ?? profile?.StorageAccountName ?? throw new Exception("storageAccount for AzureBlobStackReference not found");
+            ["PULUMI_SELF_MANAGED_STATE_GZIP"] = "true",
+            ["AZURE_STORAGE_ACCOUNT"] = storageAccount,
+            ["AZURE_KEY_VAULT"] = keyVault,
+            ["PULUMI_ORGANIZATION"] = organization
+        };
+        if (Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") == null)
+        {
+            localWorkspaceOptions.EnvironmentVariables["AZURE_KEYVAULT_AUTH_VIA_CLI"] = "true";
+        }
+        localWorkspaceOptions.SecretsProvider = secretsProvider;
 
-            var secretsProvider = $"azurekeyvault://{profile.KeyVaultName}.vault.azure.net/keys/{profile.Organization}";
-
-            localWorkspaceOptions.EnvironmentVariables = new Dictionary<string, string?>
+        if (!string.IsNullOrEmpty(stack))
+        {
+            localWorkspaceOptions.StackSettings = new Dictionary<string, StackSettings>();
+            localWorkspaceOptions.StackSettings[stack] = new StackSettings
             {
-                ["PULUMI_SELF_MANAGED_STATE_GZIP"] = "true",
-                ["AZURE_STORAGE_ACCOUNT"] = storageAccount
+                SecretsProvider = secretsProvider
             };
-            if (Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") == null)
-            {
-                localWorkspaceOptions.EnvironmentVariables["AZURE_KEYVAULT_AUTH_VIA_CLI"] = "true";
-            }
-            localWorkspaceOptions.SecretsProvider = secretsProvider;
-            localWorkspaceOptions.ProjectSettings!.Backend = new global::Pulumi.Automation.ProjectBackend
-            {
-                Url = $"azblob://{profile.Organization}/{projectName}"
-            };
-            if (!string.IsNullOrEmpty(stack))
-            {
-                localWorkspaceOptions.StackSettings = new Dictionary<string, StackSettings>();
-                localWorkspaceOptions.StackSettings[stack] = new StackSettings
-                {
-                    SecretsProvider = secretsProvider
-                };
-            }
         }
 
         return localWorkspaceOptions;

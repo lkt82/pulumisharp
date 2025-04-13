@@ -1,10 +1,12 @@
 ﻿using System.Diagnostics;
 using CommandDotNet;
 using CommandDotNet.Spectre;
-using Pulumi.Automation;
+using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace PulumiSharp;
 
+[UsedImplicitly]
 public class PulumiRunner
 {
     [DebuggerStepThrough]
@@ -16,7 +18,7 @@ public class PulumiRunner
             .Configure(c =>
             {
                 c.Services.Add(new PulumiCli());
-                c.Services.Add(()=>
+                c.Services.Add(() =>
                 {
                     if (typeof(T).IsAssignableTo(typeof(IDictionary<string, object?>)))
                     {
@@ -42,18 +44,66 @@ public class PulumiRunner
             })
             .RunAsync(args);
     }
-}
 
-public class PulumiRunner<T> where T : Pulumi.Stack, new()
-{
-    public async Task<int> RunAsync(params string[] args)
+    [DebuggerStepThrough]
+    public async Task<int> RunAsync(Func<object?> func, params string[] args)
     {
-        return await new AppRunner<PulumiCommand<T>>()
+        return await new AppRunner<PulumiCommand>()
             .UseSpectreAnsiConsole()
-            .Configure(c=>
+            .UseCancellationHandlers()
+            .Configure(c =>
             {
                 c.Services.Add(new PulumiCli());
-                c.Services.Add(PulumiFn.Create<T>());
+                c.Services.Add(() =>
+                {
+                    var result = func();
+                    if (result == null)
+                    {
+                        return new Dictionary<string, object?>();
+                    }
+
+                    if (result.GetType().IsAssignableTo(typeof(IDictionary<string, object?>)))
+                    {
+                        return (IDictionary<string, object?>)result;
+                    }
+
+                    return result.ToDictionary();
+                });
+            })
+            .RunAsync(args);
+    }
+}
+
+public class PulumiRunner<T> where T : Stack
+{
+    private readonly ServiceProvider? _serviceProvider;
+
+    public PulumiRunner(ServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
+
+    public PulumiRunner()
+    {
+    }
+
+    public async Task<int> RunAsync(params string[] args)
+    {
+        return await new AppRunner<PulumiCommand>()
+            .UseSpectreAnsiConsole()
+            .UseCancellationHandlers()
+            .Configure(c =>
+            {
+                IDictionary<string, object?> Func()
+                {
+                    var stack = _serviceProvider == null
+                        ? Activator.CreateInstance<T>()
+                        : _serviceProvider.GetRequiredService<T>();
+                    return stack.DoBuild();
+                }
+
+                c.Services.Add(new PulumiCli());
+                c.Services.Add(Func);
             })
             .RunAsync(args);
     }

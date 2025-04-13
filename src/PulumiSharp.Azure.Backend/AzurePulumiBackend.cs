@@ -2,7 +2,7 @@
 using Pulumi.AzureNative.KeyVault;
 using Pulumi.AzureNative.KeyVault.Inputs;
 using Pulumi.Random;
-using PulumiAzureNativeStorage = Pulumi.AzureNative.Storage.V20220901;
+using PulumiAzureNativeStorage = Pulumi.AzureNative.Storage;
 using AzureNativeConfig = Pulumi.AzureNative.Config;
 
 namespace PulumiSharp.Azure.Backend;
