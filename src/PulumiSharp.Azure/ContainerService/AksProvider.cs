@@ -4,7 +4,7 @@ using Pulumi.AzureNative.ContainerService;
 using Pulumi.Kubernetes;
 using KubernetesProvider = Pulumi.Kubernetes.Provider;
 
-namespace PulumiSharp.Azure.Aks;
+namespace PulumiSharp.Azure.ContainerService;
 
 public record AksProviderArgs(
     Output<string>? ResourceGroupName = null,
@@ -18,7 +18,15 @@ public record AksProviderArgs(
 }
 
 
-public class AksProvider : KubernetesProvider
+public class AksProvider(string name, AksProviderArgs args, CustomResourceOptions? options = null)
+    : KubernetesProvider(name, new ProviderArgs
+    {
+        KubeConfig = args.KubeConfig ?? throw new InvalidOperationException(),
+        SuppressDeprecationWarnings = false,
+        SuppressHelmHookWarnings = true,
+        EnableServerSideApply = false,
+        DeleteUnreachable = true
+    }, options)
 {
     public static Output<string> GetKubeConfig(Input<string> resourceGroupName, Input<string> clusterName)
     {
@@ -32,31 +40,9 @@ public class AksProvider : KubernetesProvider
             var data = Convert.FromBase64String(encoded);
             var raw = Encoding.UTF8.GetString(data);
 
-            if (Pulumi.AzureNative.Config.ClientId != null)
-            {
-                return raw.Replace("devicecode", $"spn --client-id {Pulumi.AzureNative.Config.ClientId} --client-secret {Pulumi.AzureNative.Config.ClientSecret}");
-            }
-
-            if (Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") != null)
-            {
-                return raw.Replace("devicecode", "spn");
-            }
-
-            return raw.Replace("devicecode", "azurecli");
+            return Pulumi.AzureNative.Config.ClientId != null ? raw.Replace("devicecode", $"spn --client-id {Pulumi.AzureNative.Config.ClientId} --client-secret {Pulumi.AzureNative.Config.ClientSecret}") : raw.Replace("devicecode", Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") != null ? "spn" : "azurecli");
         }));
     }
 
-    public AksProvider(string name, AksProviderArgs args, CustomResourceOptions? options = null) : base(name, new ProviderArgs
-    {
-        KubeConfig = args.KubeConfig ?? throw new InvalidOperationException(),
-        SuppressDeprecationWarnings = false,
-        SuppressHelmHookWarnings = true,
-        EnableServerSideApply = false,
-        DeleteUnreachable = true
-    }, options)
-    {
-        KubeConfig = args.KubeConfig;
-    }
-
-    public Output<string> KubeConfig { get; set; }
+    public Output<string> KubeConfig { get; set; } = args.KubeConfig ?? throw new InvalidOperationException();
 }

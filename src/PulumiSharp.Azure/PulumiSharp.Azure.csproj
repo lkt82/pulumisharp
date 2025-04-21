@@ -18,6 +18,7 @@
     </PackageReference>
     <PackageReference Include="Pulumi.AzureAD" Version="6.*" />
     <PackageReference Include="Pulumi.AzureNative" Version="3.*" />
+    <PackageReference Include="Pulumi.Kubernetes" Version="4.*" />
     <PackageReference Include="MinVer" Version="6.0.0">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -16,11 +16,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		nuget.config = nuget.config
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PulumiSharp.Azure.Aks", "src\PulumiSharp.Azure.Aks\PulumiSharp.Azure.Aks.csproj", "{1A985B09-8D9F-450A-816D-8CEB142E1088}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PulumiSharp.Pipelines", "src\PulumiSharp.Pipelines\PulumiSharp.Pipelines.csproj", "{33B28D78-60FE-D6EA-12F6-14FFA78CF4F1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pipelines", "cicd\Pipelines\Pipelines.csproj", "{1FAE966A-8D19-4BA4-82C4-985301FCDBFF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PulumiSharp.Backend", "src\PulumiSharp.Backend\PulumiSharp.Backend.csproj", "{1FD1E72E-D1B5-CC08-E4D7-2845F16A1E7B}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PulumiSharp.Azure.Backend", "src\PulumiSharp.Azure.Backend\PulumiSharp.Azure.Backend.csproj", "{1ECA636C-2B1E-4CEF-A543-DB41A8ACB370}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PulumiSharp.Sample", "src\PulumiSharp.Sample\PulumiSharp.Sample.csproj", "{0E89DDCC-F686-4113-ABCB-CC4315F230A9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,18 +36,18 @@ Global
 		{7454332F-3903-4A99-8441-FAD3082A2146}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7454332F-3903-4A99-8441-FAD3082A2146}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7454332F-3903-4A99-8441-FAD3082A2146}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1A985B09-8D9F-450A-816D-8CEB142E1088}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1A985B09-8D9F-450A-816D-8CEB142E1088}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1A985B09-8D9F-450A-816D-8CEB142E1088}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1A985B09-8D9F-450A-816D-8CEB142E1088}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1FAE966A-8D19-4BA4-82C4-985301FCDBFF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1FAE966A-8D19-4BA4-82C4-985301FCDBFF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1FAE966A-8D19-4BA4-82C4-985301FCDBFF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1FAE966A-8D19-4BA4-82C4-985301FCDBFF}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1ECA636C-2B1E-4CEF-A543-DB41A8ACB370}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1ECA636C-2B1E-4CEF-A543-DB41A8ACB370}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1ECA636C-2B1E-4CEF-A543-DB41A8ACB370}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1ECA636C-2B1E-4CEF-A543-DB41A8ACB370}.Release|Any CPU.Build.0 = Release|Any CPU
+		{33B28D78-60FE-D6EA-12F6-14FFA78CF4F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{33B28D78-60FE-D6EA-12F6-14FFA78CF4F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{33B28D78-60FE-D6EA-12F6-14FFA78CF4F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{33B28D78-60FE-D6EA-12F6-14FFA78CF4F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FD1E72E-D1B5-CC08-E4D7-2845F16A1E7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FD1E72E-D1B5-CC08-E4D7-2845F16A1E7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FD1E72E-D1B5-CC08-E4D7-2845F16A1E7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FD1E72E-D1B5-CC08-E4D7-2845F16A1E7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E89DDCC-F686-4113-ABCB-CC4315F230A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E89DDCC-F686-4113-ABCB-CC4315F230A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E89DDCC-F686-4113-ABCB-CC4315F230A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E89DDCC-F686-4113-ABCB-CC4315F230A9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

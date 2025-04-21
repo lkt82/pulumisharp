@@ -1,0 +1,5 @@
+﻿name: PulumiSharp.Sample
+runtime: dotnet
+description: PulumiSharp Sample
+backend:
+  url: file://~ 

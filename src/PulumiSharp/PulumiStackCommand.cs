@@ -1,22 +1,20 @@
 ﻿using CommandDotNet;
 using Pulumi.Automation;
 using Pulumi.Automation.Commands.Exceptions;
-using Spectre.Console;
 using CommandContext = CommandDotNet.CommandContext;
 
 namespace PulumiSharp;
 
 [Subcommand]
 [Command("stack")]
-internal class PulumiStackCommand(IAnsiConsole ansiConsole, CommandContext commandContext)
-    : PulumiCommandBase(ansiConsole, commandContext)
+internal class PulumiStackCommand(CommandContext commandContext)
 {
     [Command("init")]
     public async Task Init(string stack)
     {
-        var workspaceOptions = CreateInlineWorkspaceOptions(stack);
+        var options = new WorkspaceOptionsFactory(commandContext).CreateInline(stack);
 
-        var projectConfig = Path.Combine(workspaceOptions.WorkDir!, "Pulumi.yaml");
+        var projectConfig = Path.Combine(options.WorkDir!, "Pulumi.yaml");
 
         var config = new Dictionary<string, ConfigValue>
         {
@@ -26,25 +24,25 @@ internal class PulumiStackCommand(IAnsiConsole ansiConsole, CommandContext comma
 
         if (!File.Exists(projectConfig))
         {
-            workspaceOptions.StackSettings = null;
+            options.StackSettings = null;
 
-            using var workspaceStack = await LocalWorkspace.CreateOrSelectStackAsync(workspaceOptions);
+            using var workspaceStack = await LocalWorkspace.CreateOrSelectStackAsync(options);
             await workspaceStack.SetAllConfigAsync(config);
         }
         else
         {
-            workspaceOptions.StackSettings = null;
-            workspaceOptions.ProjectSettings = null;
+            options.StackSettings = null;
+            options.ProjectSettings = null;
 
-            using var workspace = await LocalWorkspace.CreateAsync(workspaceOptions);
+            using var workspace = await LocalWorkspace.CreateAsync(options);
 
             try
             {
-                await workspace.CreateStackAsync(workspaceOptions.StackName);
+                await workspace.CreateStackAsync(options.StackName);
             }
             catch (StackAlreadyExistsException)
             {
-                await workspace.SelectStackAsync(workspaceOptions.StackName);
+                await workspace.SelectStackAsync(options.StackName);
             }
         }
     }
@@ -52,8 +50,8 @@ internal class PulumiStackCommand(IAnsiConsole ansiConsole, CommandContext comma
     [Command("select")]
     public async Task Select(string stack)
     {
-        var workspaceOptions = CreateInlineWorkspaceOptions(stack);
+        var options = new WorkspaceOptionsFactory(commandContext).CreateInline(stack);
 
-        await PulumiCli.RunCommand($"stack select --stack {stack}", workspaceOptions);
+        await PulumiCli.RunCommand($"stack select --stack {stack}", options);
     }
 }

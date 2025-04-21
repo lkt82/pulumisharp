@@ -4,14 +4,14 @@ namespace PulumiSharp;
 
 public abstract class Stack
 {
-    internal abstract Dictionary<string, object?> DoBuild();
+    internal abstract object DoBuild();
 }
 
 public abstract class Stack<T> : Stack where T : class
 {
-    internal override Dictionary<string, object?> DoBuild()
+    internal override object DoBuild()
     {
-        return Build().ToDictionary();
+        return Build();
     }
 
     public abstract T Build();

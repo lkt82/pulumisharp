@@ -5,7 +5,7 @@ using Automatron.Models;
 using JetBrains.Annotations;
 using static SimpleExec.Command;
 
-namespace Pipelines;
+namespace PulumiSharp.Pipelines;
 
 [Pipeline("Ci", YmlDir = RelativeRootDir, YmlName = "azure-pipelines")]
 [CiTrigger(Batch = true, IncludeBranches = ["main"], IncludePaths = ["src"])]
@@ -105,6 +105,10 @@ public class Pipeline(LoggingCommands loggingCommands)
         {
             await loggingCommands.UploadArtifactAsync("/", "Nuget", nuget);
             await loggingCommands.UploadArtifactAsync("/", "Nuget", nuget.Replace("nupkg", "snupkg"));
+        }
+
+        foreach (var nuget in Directory.EnumerateFiles(ArtifactsDir, "*.nupkg"))
+        {
             await RunAsync("dotnet", $"nuget push {nuget} -k {NugetApiKey?.GetValue()} -s https://api.nuget.org/v3/index.json --skip-duplicate", workingDirectory: RootDir, noEcho: true);
         }
     }

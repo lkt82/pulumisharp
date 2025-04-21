@@ -1,17 +1,13 @@
 ﻿using CommandDotNet;
 using Spectre.Console;
-using CommandContext = CommandDotNet.CommandContext;
 using static SimpleExec.Command;
 
 namespace PulumiSharp;
 
 [Subcommand]
 [Command("profile")]
-internal class PulumiProfileCommand(IAnsiConsole ansiConsole, CommandContext commandContext)
-    : PulumiCommandBase(ansiConsole, commandContext)
+internal class PulumiProfileCommand(IAnsiConsole ansiConsole)
 {
-    private readonly IAnsiConsole _ansiConsole = ansiConsole;
-
     [Command("ls")]
     public async Task<int> List()
     {
@@ -19,13 +15,13 @@ internal class PulumiProfileCommand(IAnsiConsole ansiConsole, CommandContext com
 
         if (profiles == null)
         {
-            _ansiConsole.MarkupLine("[red]Profile is not is configured[/]");
+            ansiConsole.MarkupLine("[red]Profile is not is configured[/]");
             return 1;
         }
 
         foreach (var account in profiles.Profiles)
         {
-            _ansiConsole.Write(account.Key);
+            ansiConsole.Write(account.Key);
         }
 
         return 0;
@@ -38,7 +34,7 @@ internal class PulumiProfileCommand(IAnsiConsole ansiConsole, CommandContext com
 
         if (profiles == null)
         {
-            _ansiConsole.MarkupLine($"[red]Profile {profile} is not is configured[/]");
+            ansiConsole.MarkupLine($"[red]Profile {profile} is not is configured[/]");
             return 1;
         }
 
@@ -61,7 +57,7 @@ internal class PulumiProfileCommand(IAnsiConsole ansiConsole, CommandContext com
 
         if (profiles == null)
         {
-            _ansiConsole.MarkupLine($"[red]Profile {profile} is not is configured[/]");
+            ansiConsole.MarkupLine($"[red]Profile {profile} is not is configured[/]");
             return 1;
         }
 
@@ -78,7 +74,7 @@ internal class PulumiProfileCommand(IAnsiConsole ansiConsole, CommandContext com
         var profiles = await PulumiContext.GetProfilesAsync();
         if (profiles == null)
         {
-            _ansiConsole.MarkupLine($"[red]Profile {profile} is not is configured[/]");
+            ansiConsole.MarkupLine($"[red]Profile {profile} is not is configured[/]");
             return 1;
         }
 
@@ -102,7 +98,7 @@ internal class PulumiProfileCommand(IAnsiConsole ansiConsole, CommandContext com
         var profiles = await PulumiContext.GetProfilesAsync();
         if (profiles == null)
         {
-            _ansiConsole.MarkupLine($"[red]Profile {profile} is not is configured[/]");
+            ansiConsole.MarkupLine($"[red]Profile {profile} is not is configured[/]");
             return 1;
         }
 

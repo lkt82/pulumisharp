@@ -20,8 +20,14 @@ public static class StackReferenceExtensions
     {
         var arguments = new List<object>();
 
+ 
         foreach (PropertyDescriptor property in TypeDescriptor.GetProperties(typeof(T)))
         {
+            if (!(property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition() == typeof(Output<>)))
+            {
+                throw new NotSupportedException("none output properties are not supported");
+            }
+            
             var outputType = property.PropertyType.GetGenericArguments().First();
 
             var castMethod = outputType.IsGenericType switch
@@ -54,8 +60,10 @@ public static class StackReferenceExtensions
 
     private static Output<ImmutableArray<T>> CastArray<T>(Output<object?> output) => output.Apply(c =>
     {
+        //Debugger.Launch();
         var array = (ImmutableArray<object>)c!;
-        return array.Cast<T>().ToImmutableArray();
+        return array.Select(s=> Convert.ChangeType(s,typeof(T))).Cast<T>().ToImmutableArray();
+        //return array.Cast<T>().ToImmutableArray();
     });
 
     private static Output<ImmutableDictionary<TKey,TValue>> CastDictionary<TKey, TValue>(Output<object?> output) where TKey : notnull => output.Apply(c => ((IEnumerable<KeyValuePair<TKey, object>>)c!).ToImmutableDictionary(keyValuePair => keyValuePair.Key, keyValuePair => (TValue)keyValuePair.Value));

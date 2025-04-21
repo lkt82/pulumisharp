@@ -3,7 +3,7 @@
 
 	<PropertyGroup>
 		<MinVerSkip Condition="'$(Configuration)' == 'Debug'">true</MinVerSkip>
-		<Copyright>© 2022 Lars Kjær Thomsen</Copyright>
+		<Copyright>© 2025 Lars Kjær Thomsen</Copyright>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<IncludeSymbols>true</IncludeSymbols>

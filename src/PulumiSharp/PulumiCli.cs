@@ -4,21 +4,21 @@ using static SimpleExec.Command;
 
 namespace PulumiSharp;
 
-internal class PulumiCli
+internal static class PulumiCli
 {
     [DebuggerStepThrough]
-    public async Task RunCommand(string args, LocalWorkspaceOptions workspaceOptions)
+    public static async Task RunCommand(string args, LocalWorkspaceOptions options)
     {
         await RunAsync("pulumi", args,
-            workspaceOptions.WorkDir?? Directory.GetCurrentDirectory(), true, configureEnvironment:
+            options.WorkDir?? Directory.GetCurrentDirectory(), true, configureEnvironment:
             c =>
             {
-                if (workspaceOptions.EnvironmentVariables == null)
+                if (options.EnvironmentVariables == null)
                 {
                     return;
                 }
 
-                foreach (var keyValue in workspaceOptions.EnvironmentVariables)
+                foreach (var keyValue in options.EnvironmentVariables)
                 {
                     c.Add(keyValue);
                 }
@@ -26,7 +26,7 @@ internal class PulumiCli
     }
 
     [DebuggerStepThrough]
-    public async Task RunCommand(string args, string? workDir=null, IDictionary<string, string?>? environmentVariable=null)
+    public static async Task RunCommand(string args, string? workDir=null, IDictionary<string, string?>? environmentVariable=null)
     {
         await RunAsync("pulumi", args,
             workDir?? Directory.GetCurrentDirectory(), true, configureEnvironment:

@@ -5,7 +5,7 @@ using Pulumi.Random;
 using PulumiAzureNativeStorage = Pulumi.AzureNative.Storage;
 using AzureNativeConfig = Pulumi.AzureNative.Config;
 
-namespace PulumiSharp.Azure.Backend;
+namespace PulumiSharp.Backend;
 
 public record AzurePulumiBackendArgs(Input<string> ResourceGroupName, InputMap<string> Tags);
 

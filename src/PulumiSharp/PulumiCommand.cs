@@ -6,14 +6,13 @@ using CommandContext = CommandDotNet.CommandContext;
 
 namespace PulumiSharp;
 
-internal class PulumiCommand(IAnsiConsole ansiConsole, CommandContext commandContext)
-    : PulumiCommandBase(ansiConsole, commandContext)
+internal class PulumiCommand(IAnsiConsole ansiConsole,CommandContext commandContext)
 {
     [DefaultCommand]
     [DebuggerStepThrough]
     public virtual Task<int> RunDeployment(params string[]? args)
     {
-        var func = CommandContext.Services.GetOrThrow<Func<IDictionary<string, object?>>>();
+        var func = commandContext.Services.GetOrThrow<Func<IDictionary<string, object?>>>();
 
         return Deployment.RunAsync(func);
     }
@@ -32,7 +31,7 @@ internal class PulumiCommand(IAnsiConsole ansiConsole, CommandContext commandCon
     [DebuggerStepThrough]
     public async Task<int> Preview(string? stack)
     {
-        var options = CreateInlineWorkspaceOptions(stack);
+        var options = new WorkspaceOptionsFactory(commandContext).CreateInline(stack);
 
         await using var inlineHost = await InlineLanguageHost.Start(options);
         try
@@ -58,7 +57,7 @@ internal class PulumiCommand(IAnsiConsole ansiConsole, CommandContext commandCon
     [DebuggerStepThrough]
     public async Task<int> Up(string? stack)
     {
-        var options = CreateInlineWorkspaceOptions(stack);
+        var options = new WorkspaceOptionsFactory(commandContext).CreateInline(stack);
 
         await using var inlineHost = await InlineLanguageHost.Start(options);
         try
@@ -67,7 +66,7 @@ internal class PulumiCommand(IAnsiConsole ansiConsole, CommandContext commandCon
                 $"preview --client=127.0.0.1:{inlineHost.Port} --exec-kind auto.inline{(stack != null ? $" --stack {stack}" : string.Empty)}",
                 options);
 
-            var result = AnsiConsole.Prompt(
+            var result = ansiConsole.Prompt(
                 new SelectionPrompt<string>()
                     .Title(
                         "Do you want to perform this update?  [grey][[Use arrows to move, enter to select, type to filter]][/]")
@@ -97,7 +96,7 @@ internal class PulumiCommand(IAnsiConsole ansiConsole, CommandContext commandCon
     [DebuggerStepThrough]
     public async Task Down(string? stack)
     {
-        var options = CreateInlineWorkspaceOptions(stack);
+        var options = new WorkspaceOptionsFactory(commandContext).CreateInline(stack);
 
         var result = AnsiConsole.Prompt(
             new SelectionPrompt<string>()

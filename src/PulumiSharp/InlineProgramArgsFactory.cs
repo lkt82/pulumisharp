@@ -1,10 +1,14 @@
-﻿using Pulumi.Automation;
+﻿using CommandDotNet;
+using Pulumi.Automation;
+using System.Reflection;
 
 namespace PulumiSharp;
 
-internal static class WorkspaceOptionsFactory
+internal class WorkspaceOptionsFactory(CommandContext commandContext)
 {
-    public static InlineProgramArgs CreateInline(string projectName, string? stack, PulumiFn program)
+    protected static string ProjectName => Assembly.GetEntryAssembly()!.GetName().Name!;
+
+    public InlineProgramArgs CreateInline(string projectName, string? stack, PulumiFn program)
     {
         var localWorkspaceOptions = new InlineProgramArgs(projectName, stack ?? string.Empty, program)
         {
@@ -44,12 +48,16 @@ internal static class WorkspaceOptionsFactory
         return localWorkspaceOptions;
     }
 
-    public static InlineProgramArgs CreateLocalInline(string projectName, string? stack, PulumiFn program)
+    public InlineProgramArgs CreateInline(string? stack)
     {
-        var localWorkspaceOptions = CreateInline(projectName, stack, program);
-        localWorkspaceOptions.ProjectSettings!.Main = null;
-        localWorkspaceOptions.WorkDir = Directory.GetCurrentDirectory();
+        var func = commandContext.Services.GetOrThrow<Func<IDictionary<string, object?>>>();
 
-        return localWorkspaceOptions;
+        var program = PulumiFn.Create(func);
+
+        var inlineProgram = CreateInline(ProjectName, stack, program);
+        inlineProgram.ProjectSettings!.Main = null;
+        inlineProgram.WorkDir = Directory.GetCurrentDirectory();
+
+        return inlineProgram;
     }
 }
