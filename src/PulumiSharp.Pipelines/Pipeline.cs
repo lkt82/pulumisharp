@@ -25,12 +25,11 @@ public class Pipeline(LoggingCommands loggingCommands)
 
     private static string ArtifactsDir => $"{RootDir}.artifacts";
 
-    private readonly string[] _projects = {
+    private readonly string[] _projects =
+    [
         $"{RootDir}/src/PulumiSharp",
-        $"{RootDir}/src/PulumiSharp.Azure",
-        $"{RootDir}/src/PulumiSharp.Azure.Aks",
-        $"{RootDir}/src/PulumiSharp.Azure.Backend"
-    };
+        $"{RootDir}/src/PulumiSharp.Azure"
+    ];
 
     [Variable(Description = "The nuget api key")]
     public Secret? NugetApiKey { get; set; }

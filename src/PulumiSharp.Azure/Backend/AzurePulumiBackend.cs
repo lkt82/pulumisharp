@@ -5,29 +5,22 @@ using Pulumi.Random;
 using PulumiAzureNativeStorage = Pulumi.AzureNative.Storage;
 using AzureNativeConfig = Pulumi.AzureNative.Config;
 
-namespace PulumiSharp.Backend;
+namespace PulumiSharp.Azure.Backend;
 
 public record AzurePulumiBackendArgs(Input<string> ResourceGroupName, InputMap<string> Tags);
 
-public class AzurePulumiBackend : ComponentResource
+public class AzurePulumiBackendConfig
 {
-    private readonly Config _config = new(nameof(AzurePulumiBackend).ToLower());
+    public List<string> Organizations { get; set; } = new();
+}
 
-    private List<string> Organizations => _config.RequireObject<List<string>>(nameof(Organizations).ToLower());
-
+public class AzurePulumiBackend : Component<AzurePulumiBackend,AzurePulumiBackendArgs, AzurePulumiBackendConfig>
+{
     public Output<string> StorageAccountName { get; set; }
 
     public Output<string> KeyVaultName { get; set; }
 
-    public AzurePulumiBackend(string name, AzurePulumiBackendArgs args) : base(nameof(AzurePulumiBackend), name, new ComponentResourceOptions
-    {
-        Aliases = {
-            new Alias
-            {
-               Name = "PulumiService"
-            }
-        }
-    })
+    public AzurePulumiBackend(string name, AzurePulumiBackendArgs args, ComponentResourceOptions? options=null) : base(name,nameof(AzurePulumiBackend).ToLower(), args, options)
     {
         var id = new RandomId($"{name}-storageaccount", new RandomIdArgs
         {
@@ -83,7 +76,7 @@ public class AzurePulumiBackend : ComponentResource
             Parent = this
         });
 
-        foreach (var organization in Organizations)
+        foreach (var organization in Config.Organizations)
         {
             var blobContainer = new PulumiAzureNativeStorage.BlobContainer(organization, new PulumiAzureNativeStorage.BlobContainerArgs
             {
