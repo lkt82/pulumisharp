@@ -34,10 +34,10 @@ internal class OutputVisitor<T>(Output<ImmutableDictionary<string, object>> outp
             arguments.Add(value);
         }
 
-        var types = arguments.Select(c => c.GetType()).ToArray();
+        var types = arguments.Where(c => c != null).Select(c => c!.GetType()).ToArray();
         var constructorInfo = typeof(T).GetConstructor(types);
 
-        return (T)constructorInfo?.Invoke(arguments.ToArray())! ?? throw new InvalidOperationException();
+        return (T)constructorInfo?.Invoke(arguments.ToArray())! ?? throw new InvalidOperationException("constructor not found");
     }
 
     private object? MapProperty(PropertyInfo propertyInfo)
@@ -171,6 +171,11 @@ internal class OutputVisitor(object? output) : MemberVisitor<IDictionary<string,
         if (output == null)
         {
             return new Dictionary<string, object?>();
+        }
+
+        if (Convert.GetTypeCode(output) != TypeCode.Object)
+        {
+            throw new NotSupportedException($"output of type {type.Name} is not supported. please use a object or record");
         }
 
         var serialized = (IDictionary<string, object?>?)SerializeObject(type, output);

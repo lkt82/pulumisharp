@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "Default": {
+      "commandName": "Project"
+    },
+    "Pulumi": {
+      "commandName": "Project",
+      "commandLineArgs": "up dev2",
+      "workingDirectory": "."
+    }
+  }
+}

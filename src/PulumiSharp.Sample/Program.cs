@@ -1,7 +1,6 @@
 ﻿using PulumiSharp;
 using Pulumi;
 using System.Collections.Immutable;
-using System.Diagnostics;
 
 //return await new PulumiRunner().RunAsync(() =>
 //{
@@ -14,33 +13,35 @@ using System.Diagnostics;
 return await new PulumiRunner().RunAsync(() =>
 {
     //Debugger.Launch();
-    var sampleOutputStackReference = StackReference<SampleOutput>.Builder.WithStackConfig().Build();
+    //var sampleOutputStackReference = StackReference<SampleOutput>.Builder.WithStackConfig().Build();
 
-    return new Dictionary<int, object?>
-    {
-        { 1, sampleOutputStackReference.Output.ArrayDictionaryOutput }
-    };
+    //return new Dictionary<int, object?>
+    //{
+    //    { 1, sampleOutputStackReference.Output.ArrayDictionaryOutput }
+    //};
 
-    //return new SampleOutput(
-    //    NullOutput: null,
-    //    StringOutput: Output.Create("test"),
-    //    ObjectOutput: Output.Create(new DtoObject("test", 1)),
-    //    ArrayObjectOutput: Output.Create(new[] { new DtoObject("test", 2) }.ToImmutableArray()),
-    //    ArrayIntOutput: Output.Create(new[] { 1, 2 }.ToImmutableArray()),
-    //    DictionaryOutput: Output.Create(new Dictionary<double, double> { { 2.2, 1.6 } }.ToImmutableDictionary()),
-    //    ArrayDictionaryOutput: Output.Create(new[]
-    //    {
-    //        new Dictionary<string, ImmutableDictionary<string, double>>
-    //        {
-    //            { "property",
-    //                new Dictionary<string, double>
-    //                {
-    //                    { "property", 1.6 }
-    //                }.ToImmutableDictionary()
-    //            }
-    //        }.ToImmutableDictionary()
-    //    }.ToImmutableArray())
-    //    );
+    //return "jobs done";
+
+    return new SampleOutput(
+        NullOutput: null,
+        StringOutput: Output.Create("test"),
+        ObjectOutput: Output.Create(new DtoObject("test", 1)),
+        ArrayObjectOutput: Output.Create(new[] { new DtoObject("test", 2) }.ToImmutableArray()),
+        ArrayIntOutput: Output.Create(new[] { 1, 2 }.ToImmutableArray()),
+        DictionaryOutput: Output.Create(new Dictionary<double, double> { { 2.2, 1.6 } }.ToImmutableDictionary()),
+        ArrayDictionaryOutput: Output.Create(new[]
+        {
+            new Dictionary<string, ImmutableDictionary<string, double>>
+            {
+                { "property",
+                    new Dictionary<string, double>
+                    {
+                        { "property", 1.6 }
+                    }.ToImmutableDictionary()
+                }
+            }.ToImmutableDictionary()
+        }.ToImmutableArray())
+        );
 
     //return null;
 

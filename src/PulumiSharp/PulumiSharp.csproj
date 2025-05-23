@@ -1,12 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+      <TargetFramework>net8.0</TargetFramework>
+      <ImplicitUsings>enable</ImplicitUsings>
+      <Nullable>enable</Nullable>
+      <Description>PulumiSharp helps .Net Developers create C# Pulumi projects with types output contracts</Description>
+      <PackageTags>Pulumi</PackageTags>
+      <PackageReadmeFile>README.md</PackageReadmeFile>
+      <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
     <Import Project="..\..\build.props" />
+
+    <ItemGroup>
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CommandDotNet" Version="8.1.1" />
