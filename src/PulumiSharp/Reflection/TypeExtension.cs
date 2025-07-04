@@ -22,12 +22,13 @@ internal static class TypeExtension
 
         foreach (var methodSymbol in array)
         {
-            if (methodSymbol.IsOverride())
+            if (!methodSymbol.IsOverride())
             {
-                var symbol1 = methodSymbol;
-                var index = allMethods.FindIndex(c => c.Name == symbol1.Name);
-                allMethods.RemoveAt(index);
+                continue;
             }
+            var symbol1 = methodSymbol;
+            var index = allMethods.FindIndex(c => c.Name == symbol1.Name);
+            allMethods.RemoveAt(index);
         }
 
         return allMethods;

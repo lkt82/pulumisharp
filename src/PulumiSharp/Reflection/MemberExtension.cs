@@ -9,16 +9,17 @@ internal static class MemberExtension
         switch (memberInfo)
         {
             case Type type:
-                TypeExtension.Accept(type, visitor);
+                type.Accept(visitor);
                 break;
             case ConstructorInfo constructor:
-                constructor.Accept(visitor);
+                throw new NotSupportedException();
+                //constructor.Accept(visitor);
                 break;
             case MethodInfo method:
-                MethodExtension.Accept(method, visitor);
+                method.Accept(visitor);
                 break;
             case PropertyInfo property:
-                PropertyExtension.Accept(property, visitor);
+                property.Accept(visitor);
                 break;
         }
     }
@@ -26,25 +27,19 @@ internal static class MemberExtension
 
     public static IEnumerable<T> GetAllCustomAttributes<T>(this MemberInfo memberInfo) where T : Attribute
     {
-        if (memberInfo is Type type)
+        return memberInfo switch
         {
-            return TypeExtension.GetAllCustomAttributes<T>(type);
-        }
-
-
-        if (memberInfo is MethodInfo methodInfo)
-        {
-            return MethodExtension.GetAllCustomAttributes<T>(methodInfo);
-        }
-
-        return memberInfo.GetCustomAttributes<T>();
+            Type type => type.GetAllCustomAttributes<T>(),
+            MethodInfo methodInfo => methodInfo.GetAllCustomAttributes<T>(),
+            _ => memberInfo.GetCustomAttributes<T>()
+        };
     }
 
     public static T? GetAllCustomAttribute<T>(this MemberInfo memberInfo) where T : Attribute
     {
         if (memberInfo is Type type)
         {
-            return TypeExtension.GetAllCustomAttribute<T>(type);
+            return type.GetAllCustomAttribute<T>();
         }
 
         return memberInfo.GetCustomAttribute<T>();

@@ -27,9 +27,12 @@ internal class PulumiCommand(IAnsiConsole ansiConsole,CommandContext commandCont
         await PulumiCli.RunCommand($"login {service}");
     }
 
-    [Command("preview")]
+    [Command("preview", Description = "Show a preview of updates to a stack's resources")]
     [DebuggerStepThrough]
-    public async Task<int> Preview(string? stack)
+    public async Task<int> Preview(
+        [Positional("stack", Description = "The stack to use for the preview. If not specified, the default stack will be used.")]
+        string? stack
+        )
     {
         var options = new WorkspaceOptionsFactory(commandContext).CreateInline(stack);
 
@@ -55,7 +58,11 @@ internal class PulumiCommand(IAnsiConsole ansiConsole,CommandContext commandCont
 
     [Command("up",Description = "Create or update the resources in a stack")]
     [DebuggerStepThrough]
-    public async Task<int> Up(string? stack)
+    public async Task<int> Up(
+        [Positional("stack", Description = "The stack to use for the update. If not specified, the default stack will be used.")]
+        string? stack,
+        [Option('f', "force", Description = "Force the update without confirmation.")]
+        bool force = false)
     {
         var options = new WorkspaceOptionsFactory(commandContext).CreateInline(stack);
 
@@ -66,13 +73,18 @@ internal class PulumiCommand(IAnsiConsole ansiConsole,CommandContext commandCont
                 $"preview --client=127.0.0.1:{inlineHost.Port} --exec-kind auto.inline{(stack != null ? $" --stack {stack}" : string.Empty)}",
                 options);
 
-            var result = ansiConsole.Prompt(
-                new SelectionPrompt<string>()
-                    .Title(
-                        "Do you want to perform this update?  [grey][[Use arrows to move, enter to select, type to filter]][/]")
-                    .AddChoices("yes", "no"));
+            string? result = null;
 
-            if (result == "yes")
+            if (!force)
+            {
+                result = ansiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title(
+                            "Do you want to perform this update?  [grey][[Use arrows to move, enter to select, type to filter]][/]")
+                        .AddChoices("yes", "no"));
+            }
+
+            if (force || result == "yes")
             {
                 await PulumiCli.RunCommand(
                     $"up -f -y --client=127.0.0.1:{inlineHost.Port} --exec-kind auto.inline{(stack != null ? $" --stack {stack}" : string.Empty)}",
@@ -94,17 +106,27 @@ internal class PulumiCommand(IAnsiConsole ansiConsole,CommandContext commandCont
 
     [Command("down",Description = "Destroy all existing resources in the stack")]
     [DebuggerStepThrough]
-    public async Task Down(string? stack)
+    public async Task Down(
+        [Positional("stack", Description = "The stack to use for the destroy. If not specified, the default stack will be used.")]
+        string? stack,
+        [Option('f', "force", Description = "Force the destroy without confirmation.")]
+        bool force = false
+        )
     {
         var options = new WorkspaceOptionsFactory(commandContext).CreateInline(stack);
 
-        var result = AnsiConsole.Prompt(
-            new SelectionPrompt<string>()
-                .Title(
-                    "Do you want to perform this destroy?  [grey][[Use arrows to move, enter to select, type to filter]][/]")
-                .AddChoices("yes", "no"));
+        string? result = null;
 
-        if (result == "yes")
+        if (!force)
+        {
+            result = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title(
+                        "Do you want to perform this destroy?  [grey][[Use arrows to move, enter to select, type to filter]][/]")
+                    .AddChoices("yes", "no"));
+        }
+
+        if (force || result == "yes")
         {
             await PulumiCli.RunCommand(
                 $"down -f -y {(stack != null ? $" --stack {stack}" : string.Empty)}", options);
