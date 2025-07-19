@@ -1,20 +1,28 @@
-﻿using System.Collections;
+﻿using Pulumi;
+using PulumiSharp.Reflection;
+using System.Collections;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Reflection;
-using Pulumi;
-using PulumiSharp.Reflection;
 
 namespace PulumiSharp;
 
 internal class OutputVisitor<T>(Output<ImmutableDictionary<string, object>> output) : MemberVisitor<T> where T : class
 {
     private static readonly MethodInfo UnboxMethodInfo = typeof(OutputVisitor<T>).GetMethod(nameof(UnboxOutput), BindingFlags.Static | BindingFlags.NonPublic)!;
-    private static Output<TValue?> UnboxOutput<TValue>(Output<object?> output) => output.Apply(c =>
+    private static Output<TValue?> UnboxOutput<TValue>(bool isJson,Output<object?> output)
     {
-        var value = typeof(TValue).Accept(new ValueVisitor<TValue>(c));
-        return value ?? default;
-    });
+        if (isJson)
+        {
+            return Output.JsonDeserialize<TValue>(output.Apply(c => (string)c!))!;
+        }
+
+        return output.Apply(c =>
+        {
+            var value = typeof(TValue).Accept(new ValueVisitor<TValue>(c));
+            return value ?? default;
+        });
+    }
 
     private readonly NullabilityInfoContext _nullabilityContext = new();
 
@@ -46,11 +54,13 @@ internal class OutputVisitor<T>(Output<ImmutableDictionary<string, object>> outp
 
         var nullabilityInfo = _nullabilityContext.Create(propertyInfo);
 
+        bool isJsonOutput = propertyInfo.GetCustomAttribute<JsonOutputAttribute>() != null;
+
         if (nullabilityInfo.WriteState is NullabilityState.Nullable)
         {
             var propertyOutput = output.Apply(c => c.GetValueOrDefault(propertyInfo.Name));
 
-            return castMethod.Invoke(null, [propertyOutput]);
+            return castMethod.Invoke(null, [isJsonOutput,propertyOutput]);
         }
         else
         {
@@ -64,7 +74,7 @@ internal class OutputVisitor<T>(Output<ImmutableDictionary<string, object>> outp
                 return expression;
             });
 
-            return castMethod.Invoke(null, [propertyOutput]);
+            return castMethod.Invoke(null, [isJsonOutput,propertyOutput]);
         }
     }
 
@@ -78,7 +88,7 @@ internal class OutputVisitor(object? output) : MemberVisitor<IDictionary<string,
 {
     private static readonly MethodInfo UnboxMethodInfo = typeof(OutputVisitor).GetMethod(nameof(UnboxOutput), BindingFlags.Static | BindingFlags.NonPublic)!;
 
-    private static Output<object>? UnboxOutput<T>(Type type, object? output)
+    private static Output<object>? UnboxOutput<T>(bool json, Type type, object? output)
     {
         var typeOutput = (Output<T>?)output;
 
@@ -87,10 +97,10 @@ internal class OutputVisitor(object? output) : MemberVisitor<IDictionary<string,
             return null;
         }
 
-        return typeOutput.Apply(c => SerializeObject(type, c))!;
+        return (json ? Output.JsonSerialize(typeOutput).Apply(c=> (object?)c) : typeOutput.Apply(c => SerializeObject(json,type, c)))!;
     }
 
-    private static object? SerializeObject(Type type, object? value)
+    private static object? SerializeObject(bool json,Type type, object? value)
     {
         if (IsOutput(type, value))
         {
@@ -98,7 +108,7 @@ internal class OutputVisitor(object? output) : MemberVisitor<IDictionary<string,
 
             var unboxMethod = UnboxMethodInfo.MakeGenericMethod(outputType);
 
-            return unboxMethod.Invoke(null, [outputType, value]);
+            return unboxMethod.Invoke(null, [json,outputType, value]);
         }
 
         if (IsDictionary(type, value))
@@ -108,7 +118,7 @@ internal class OutputVisitor(object? output) : MemberVisitor<IDictionary<string,
             {
                 var keyValue = ((IDictionary)value)[key];
 
-                var newValue = keyValue != null ? SerializeObject(keyValue.GetType(), keyValue) : null;
+                var newValue = keyValue != null ? SerializeObject(json,keyValue.GetType(), keyValue) : null;
 
                 dictionary.Add(Convert.ToString(key)!, newValue);
             }
@@ -120,7 +130,7 @@ internal class OutputVisitor(object? output) : MemberVisitor<IDictionary<string,
             var list = new List<object?>();
             foreach (var listItem in (IList)value!)
             {
-                var newValue = listItem != null ? SerializeObject(listItem.GetType(), listItem) : null;
+                var newValue = listItem != null ? SerializeObject(json,listItem.GetType(), listItem) : null;
 
                 list.Add(newValue);
             }
@@ -134,8 +144,10 @@ internal class OutputVisitor(object? output) : MemberVisitor<IDictionary<string,
             foreach (PropertyDescriptor property in TypeDescriptor.GetProperties(value!))
             {
                 var propertyValue = property.GetValue(value);
-
-                var newValue = propertyValue != null ? SerializeObject(property.PropertyType, propertyValue) : null;
+  
+                bool isJsonOutput = property.Attributes.OfType<JsonOutputAttribute>().Any();
+               
+                var newValue = propertyValue != null ? SerializeObject(isJsonOutput,property.PropertyType, propertyValue) : null;
 
                 dictionary.Add(property.Name, newValue);
             }
@@ -178,7 +190,7 @@ internal class OutputVisitor(object? output) : MemberVisitor<IDictionary<string,
             throw new NotSupportedException($"output of type {type.Name} is not supported. please use a object or record");
         }
 
-        var serialized = (IDictionary<string, object?>?)SerializeObject(type, output);
+        var serialized = (IDictionary<string, object?>?)SerializeObject(false, output.GetType(), output);
 
         return serialized ?? ImmutableDictionary<string, object?>.Empty;
     }

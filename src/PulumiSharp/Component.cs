@@ -1,4 +1,5 @@
 ﻿using Pulumi;
+using PulumiSharp.Reflection;
 
 namespace PulumiSharp;
 
@@ -23,22 +24,12 @@ public abstract class Component<TType, TArgs>(
     protected TArgs Args { get; init; } = args;
 }
 
-public abstract class Component<TType, TArgs, TConfig> : Component<TType, TArgs> where TConfig : new()
+public abstract class Component<TType, TArgs, TConfig>(
+    string name,
+    TArgs args,
+    ComponentResourceOptions? componentOptions = null)
+    : Component<TType, TArgs>(name, args, componentOptions)
+    where TConfig : new()
 {
-    protected TConfig Config { get; set; }
-
-    protected Component(string name, TArgs args, TConfig config,ComponentResourceOptions? componentOptions = null) : base(name, args, componentOptions)
-    {
-        Config = config;
-    }
-
-    protected Component(string name, TArgs args, ComponentResourceOptions? componentOptions = null) : base(name, args, componentOptions)
-    {
-        Config = new Config(Type.ToLower().Replace(":","-")).GetObject<TConfig>(name)??new TConfig();
-    }
-
-    protected Component(string name,string configName, TArgs args, ComponentResourceOptions? componentOptions = null) : base(name, args, componentOptions)
-    {
-        Config = new Config(configName).GetObject<TConfig>(name) ?? new TConfig();
-    }
+    protected virtual TConfig Config { get; set; } = (TConfig?)typeof(TConfig).Accept(new ConfigVisitor()) ?? new TConfig();
 }
