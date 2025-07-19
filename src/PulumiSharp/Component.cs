@@ -31,5 +31,5 @@ public abstract class Component<TType, TArgs, TConfig>(
     : Component<TType, TArgs>(name, args, componentOptions)
     where TConfig : new()
 {
-    protected virtual TConfig Config { get; set; } = (TConfig?)typeof(TConfig).Accept(new ConfigVisitor()) ?? new TConfig();
+    protected TConfig Config { get; set; } = (TConfig?)typeof(TConfig).Accept(new ConfigVisitor()) ?? new TConfig();
 }

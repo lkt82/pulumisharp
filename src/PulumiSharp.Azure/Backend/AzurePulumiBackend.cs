@@ -9,8 +9,10 @@ namespace PulumiSharp.Azure.Backend;
 
 public record AzurePulumiBackendArgs(Input<string> ResourceGroupName, InputMap<string> Tags);
 
+[Config(Name = "azurepulumibackend")]
 public class AzurePulumiBackendConfig
 {
+    [Config(Key = "organizations")]
     public List<string> Organizations { get; set; } = new();
 }
 
@@ -20,7 +22,7 @@ public class AzurePulumiBackend : Component<AzurePulumiBackend,AzurePulumiBacken
 
     public Output<string> KeyVaultName { get; set; }
 
-    public AzurePulumiBackend(string name, AzurePulumiBackendArgs args, ComponentResourceOptions? options=null) : base(name,nameof(AzurePulumiBackend).ToLower(), args, options)
+    public AzurePulumiBackend(string name, AzurePulumiBackendArgs args, ComponentResourceOptions? options=null) : base(name, args, options)
     {
         var id = new RandomId($"{name}-storageaccount", new RandomIdArgs
         {
