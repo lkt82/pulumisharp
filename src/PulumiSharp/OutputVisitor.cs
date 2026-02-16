@@ -1,4 +1,4 @@
-﻿using Pulumi;
+using Pulumi;
 using PulumiSharp.Reflection;
 using System.Collections;
 using System.Collections.Immutable;
@@ -56,8 +56,7 @@ internal class OutputVisitor<T>(Output<ImmutableDictionary<string, object>> outp
 
         bool isJsonOutput = propertyInfo.GetCustomAttribute<JsonOutputAttribute>() != null;
 
-        var isInnerTypeNullable = nullabilityInfo.GenericTypeArguments.Length > 0 
-            && nullabilityInfo.GenericTypeArguments[0].WriteState is NullabilityState.Nullable;
+        var isInnerTypeNullable = nullabilityInfo.GenericTypeArguments[0].WriteState is NullabilityState.Nullable;
 
         var isOutputNullable = nullabilityInfo.WriteState is NullabilityState.Nullable;
 
