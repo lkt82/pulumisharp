@@ -1,4 +1,4 @@
-﻿using Pulumi;
+using Pulumi;
 using PulumiSharp.Reflection;
 using System.Collections;
 using System.Collections.Immutable;
@@ -56,7 +56,11 @@ internal class OutputVisitor<T>(Output<ImmutableDictionary<string, object>> outp
 
         bool isJsonOutput = propertyInfo.GetCustomAttribute<JsonOutputAttribute>() != null;
 
-        if (nullabilityInfo.WriteState is NullabilityState.Nullable)
+        var isInnerTypeNullable = nullabilityInfo.GenericTypeArguments[0].WriteState is NullabilityState.Nullable;
+
+        var isOutputNullable = nullabilityInfo.WriteState is NullabilityState.Nullable;
+
+        if (isInnerTypeNullable || isOutputNullable)
         {
             var propertyOutput = output.Apply(c => c.GetValueOrDefault(propertyInfo.Name));
 
@@ -68,7 +72,8 @@ internal class OutputVisitor<T>(Output<ImmutableDictionary<string, object>> outp
             {
                 if (!c.TryGetValue(propertyInfo.Name, out var expression))
                 {
-                    throw new InvalidOperationException($"output {propertyInfo.Name} is missing");
+                    throw new InvalidOperationException(
+                        $"Required property '{propertyInfo.Name}' is missing in Pulumi output for type '{propertyInfo.DeclaringType.Name}'");
                 }
 
                 return expression;
